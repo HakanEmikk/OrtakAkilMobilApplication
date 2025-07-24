@@ -1,12 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="dark_gray">#2E2E2E</color>
+
+    <!-- Primary Colors -->
+    <color name="primary_purple">#6c5ce7</color>
+    <color name="primary_purple_dark">#5a4bcf</color>
+    <color name="gradient_start">#667eea</color>
+    <color name="gradient_end">#764ba2</color>
+
+    <!-- Background Colors -->
+    <color name="background_dark">#1a1a1a</color>
+    <color name="surface_dark">#2d2d2d</color>
+    <color name="surface_light">#363636</color>
+
+    <!-- Text Colors -->
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#b3b3b3</color>
+    <color name="text_muted">#666666</color>
+
+    <!-- Border & Divider Colors -->
+    <color name="border_default">#666666</color>
+    <color name="border_transparent">#00000000</color>
+    <color name="divider">#2d2d2d</color>
+
+    <!-- Interactive Colors -->
+    <color name="purple_overlay_10">#1A6c5ce7</color>
+    <color name="purple_overlay_20">#336c5ce7</color>
+    <color name="white_overlay_10">#1AFFFFFF</color>
+
+    <!-- Status Colors -->
+    <color name="success">#00C851</color>
+    <color name="warning">#ffbb33</color>
+    <color name="error">#ff4444</color>
+
+    <!-- Transparent -->
+    <color name="transparent">#00000000</color>
+
+    <!-- System Colors -->
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
 
 </resources>

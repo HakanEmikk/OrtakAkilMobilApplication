@@ -36,10 +36,12 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.hakanemik.ortakakil.R
+import com.hakanemik.ortakakil.ui.theme.OrtakAkilTheme
 
 @Composable
 fun LoginPage(navController: NavController) {
@@ -50,7 +52,7 @@ fun LoginPage(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(color = colorResource(id = R.color.black))
+            .background(color = colorResource(id = R.color.background_dark))
             .padding(horizontal = 24.dp)
             .verticalScroll(rememberScrollState()), // Kaydırılabilirlik
         horizontalAlignment = Alignment.CenterHorizontally
@@ -72,7 +74,7 @@ fun LoginPage(navController: NavController) {
         Text(
             text = "Akıllı kararlar ver, topluluğa katıl",
             fontSize = 15.sp,
-            color = colorResource(id = R.color.white)
+            color = colorResource(id = R.color.text_primary)
         )
 
         Spacer(modifier = Modifier.height(30.dp))
@@ -95,11 +97,11 @@ fun LoginPage(navController: NavController) {
                 Checkbox(
                     checked = rememberMe,
                     onCheckedChange = { rememberMe = it },
-                    colors = CheckboxDefaults.colors(checkedColor = colorResource(id = R.color.purple_700))
+                    colors = CheckboxDefaults.colors(checkedColor = colorResource(id = R.color.primary_purple))
                 )
                 Text(
                     text = "Beni Hatırla",
-                    color = colorResource(id = R.color.white),
+                    color = colorResource(id = R.color.text_primary),
                     fontSize = 14.sp
                 )
             }
@@ -107,7 +109,7 @@ fun LoginPage(navController: NavController) {
             Text(
                 text = "Şifremi Unuttum",
                 fontSize = 14.sp,
-                color = colorResource(id = R.color.white)
+                color = colorResource(id = R.color.text_primary)
             )
         }
 
@@ -115,8 +117,8 @@ fun LoginPage(navController: NavController) {
 
         LoginButton(
             onClick = { /* Giriş */ },
-            colorRes = R.color.purple_700,
-            borderColor = R.color.purple_700,
+            colorRes = R.color.primary_purple,
+            borderColor = R.color.border_transparent,
             label = "Giriş Yap"
         )
 
@@ -126,8 +128,8 @@ fun LoginPage(navController: NavController) {
             onClick = {
                 navController.navigate("register_page")
             },
-            colorRes = R.color.black,
-            borderColor =  R.color.dark_gray,
+            colorRes = R.color.transparent,
+            borderColor =  R.color.border_default,
             label = "Kayıt Ol",
 
         )
@@ -144,7 +146,7 @@ fun LoginButton(
     colorRes: Int,
     borderColor: Int = colorRes,
     label: String,
-    textColor: Color = Color.White
+    textColor: Color = colorResource(id = R.color.text_primary)
 ) {
     Button(
         onClick = onClick,
@@ -179,16 +181,17 @@ fun LoginTextFields(
             .height(60.dp)
             .clip(RoundedCornerShape(10.dp)),
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = colorResource(id = R.color.dark_gray), // Hafif koyu gri
-            unfocusedContainerColor = colorResource(id = R.color.dark_gray),
-            disabledContainerColor = colorResource(id = R.color.dark_gray),
+            focusedContainerColor = colorResource(id = R.color.surface_light), // Hafif koyu gri
+            unfocusedContainerColor = colorResource(id = R.color.surface_dark),
+            disabledContainerColor = colorResource(id = R.color.surface_dark),
             focusedIndicatorColor = Color.Transparent, // Alt çizgi yok
             unfocusedIndicatorColor = Color.Transparent,
             disabledIndicatorColor = Color.Transparent,
-            focusedLabelColor = Color.LightGray,
+            focusedLabelColor = colorResource(id = R.color.surface_light),
             cursorColor = colorResource(id = R.color.white),
             focusedTextColor = colorResource(id = R.color.white),
-            unfocusedTextColor =colorResource(id = R.color.white)
+            unfocusedTextColor =colorResource(id = R.color.white),
+
         ),
         shape = RoundedCornerShape(10.dp)
     )

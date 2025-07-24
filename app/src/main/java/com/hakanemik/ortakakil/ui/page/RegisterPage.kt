@@ -41,7 +41,7 @@ fun RegisterPage(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(color = colorResource(id = R.color.black))
+            .background(color = colorResource(id = R.color.background_dark))
             .padding(horizontal = 24.dp)
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -62,7 +62,7 @@ fun RegisterPage(navController: NavController) {
         Text(
             text = "Yeni bir hesap oluştur",
             fontSize = 18.sp,
-            color = colorResource(id = R.color.white)
+            color = colorResource(id = R.color.text_primary)
         )
 
         Spacer(modifier = Modifier.height(25.dp))
@@ -85,8 +85,8 @@ fun RegisterPage(navController: NavController) {
 
         LoginButton(
             onClick = {},
-            colorRes = R.color.purple_700,
-            borderColor = R.color.purple_700,
+            colorRes = R.color.primary_purple,
+            borderColor = R.color.border_transparent,
             label = "Kayıt Ol"
         )
 
@@ -98,7 +98,7 @@ fun RegisterPage(navController: NavController) {
             },
             content = {
                 Text(text = "Zaten hesabın var mı? Giriş Yap",
-                    color = colorResource(id = R.color.white))
+                    color = colorResource(id = R.color.text_primary))
             }
         ) 
         Spacer(modifier = Modifier.height(50.dp))

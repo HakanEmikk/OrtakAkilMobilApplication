@@ -1,39 +1,14 @@
+package com.hakanemik.ortakakil.ui.page
+
 import android.annotation.SuppressLint
-import android.util.Patterns
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,52 +19,59 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.hakanemik.ortakakil.R
-import com.hakanemik.ortakakil.entity.LoginRequest
+import com.hakanemik.ortakakil.entity.LoginUiState
 import com.hakanemik.ortakakil.entity.Resource
-import com.hakanemik.ortakakil.ui.util.DeviceSize
-import com.hakanemik.ortakakil.ui.util.currentDeviceSizeHelper
-import com.hakanemik.ortakakil.ui.util.responsive
-import com.hakanemik.ortakakil.ui.util.responsiveSp
+import com.hakanemik.ortakakil.helper.DeviceSize
+import com.hakanemik.ortakakil.helper.currentDeviceSizeHelper
+import com.hakanemik.ortakakil.helper.responsive
+import com.hakanemik.ortakakil.helper.responsiveSp
+import com.hakanemik.ortakakil.ui.utils.AuthButton
+import com.hakanemik.ortakakil.ui.utils.AuthTextFields
 import com.hakanemik.ortakakil.viewmodel.LoginPageViewModel
+import kotlinx.coroutines.launch
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun LoginPage(navController: NavController, snackbarHostState: SnackbarHostState) {
-    val viewModel: LoginPageViewModel = viewModel()
-    val uiState by viewModel.uiState.observeAsState()
+fun LoginPage(
+    navController: NavController,
+    snackbarHostState: SnackbarHostState
+) {
+    val viewModel: LoginPageViewModel = hiltViewModel()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val deviceSize = currentDeviceSizeHelper()
+
+    // Auto-login check
+    LaunchedEffect(uiState.isAutoLogging) {
+        if (uiState.isAutoLogging) {
+            navController.navigate("home_page") {
+
+            }
+        }
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
-    ) { innerPadding ->
-
+    ) { _ ->
         when (deviceSize) {
-            DeviceSize.Compact -> {
-                // Telefon - Dikey layout
-                CompactLoginLayout(deviceSize, viewModel, navController)
-            }
-            DeviceSize.Medium -> {
-                // Tablet - Ortalanmış layout
-                MediumLoginLayout(deviceSize, viewModel, navController)
-            }
-            DeviceSize.Expanded -> {
-                // Masaüstü - Yatay split layout
-                ExpandedLoginLayout(deviceSize, viewModel, navController)
-            }
+            DeviceSize.Compact -> CompactLoginLayout(deviceSize, uiState, viewModel, navController)
+            DeviceSize.Medium -> MediumLoginLayout(deviceSize, uiState, viewModel, navController)
+            DeviceSize.Expanded -> ExpandedLoginLayout(deviceSize, uiState, viewModel, navController)
         }
 
-        // Snackbar ve navigation handling
-        HandleUIState(uiState, snackbarHostState, navController)
+        // Handle UI State
+        HandleUIState(uiState.loginState, snackbarHostState, navController)
     }
 }
 
 @Composable
 private fun CompactLoginLayout(
     deviceSize: DeviceSize,
+    uiState: LoginUiState,
     viewModel: LoginPageViewModel,
     navController: NavController
 ) {
@@ -101,13 +83,14 @@ private fun CompactLoginLayout(
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        LoginContent(deviceSize, viewModel, navController)
+        LoginContent(deviceSize, uiState, viewModel, navController)
     }
 }
 
 @Composable
 private fun MediumLoginLayout(
     deviceSize: DeviceSize,
+    uiState: LoginUiState,
     viewModel: LoginPageViewModel,
     navController: NavController
 ) {
@@ -116,10 +99,7 @@ private fun MediumLoginLayout(
             .fillMaxSize()
             .background(color = colorResource(id = R.color.background_dark))
     ) {
-        // Sol taraf - boş alan
         Spacer(modifier = Modifier.weight(0.2f))
-
-        // Orta - Login formu
         Column(
             modifier = Modifier
                 .weight(0.6f)
@@ -128,10 +108,8 @@ private fun MediumLoginLayout(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            LoginContent(deviceSize, viewModel, navController)
+            LoginContent(deviceSize, uiState, viewModel, navController)
         }
-
-        // Sağ taraf - boş alan
         Spacer(modifier = Modifier.weight(0.2f))
     }
 }
@@ -139,6 +117,7 @@ private fun MediumLoginLayout(
 @Composable
 private fun ExpandedLoginLayout(
     deviceSize: DeviceSize,
+    uiState: LoginUiState,
     viewModel: LoginPageViewModel,
     navController: NavController
 ) {
@@ -147,7 +126,6 @@ private fun ExpandedLoginLayout(
             .fillMaxSize()
             .background(color = colorResource(id = R.color.background_dark))
     ) {
-        // Sol taraf - Logo/Brand alanı
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -164,7 +142,7 @@ private fun ExpandedLoginLayout(
                     .size(200.dp.responsive(200.dp, 250.dp, 200.dp, deviceSize))
                     .clip(RoundedCornerShape(20.dp))
             )
-            Spacer(modifier = Modifier.height(20.dp.responsive(20.dp, 30.dp, 24.dp, deviceSize)))
+            Spacer(modifier = Modifier.height(20.dp))
             Text(
                 text = "Akıllı kararlar ver, topluluğa katıl",
                 fontSize = 15f.responsiveSp(15f, 18f, 20f, deviceSize),
@@ -173,7 +151,6 @@ private fun ExpandedLoginLayout(
             )
         }
 
-        // Sağ taraf - Login formu
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -183,7 +160,7 @@ private fun ExpandedLoginLayout(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            LoginFormOnly(deviceSize, viewModel, navController)
+            LoginFormOnly(deviceSize, uiState, viewModel, navController)
         }
     }
 }
@@ -191,15 +168,10 @@ private fun ExpandedLoginLayout(
 @Composable
 fun LoginContent(
     deviceSize: DeviceSize,
+    uiState: LoginUiState,
     viewModel: LoginPageViewModel,
     navController: NavController
 ) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var rememberMe by remember { mutableStateOf(false) }
-    var emailError by remember { mutableStateOf<String?>(null) }
-    var passwordError by remember { mutableStateOf<String?>(null) }
-
     Spacer(modifier = Modifier.height(120.dp.responsive(120.dp, 60.dp, 40.dp, deviceSize)))
 
     Image(
@@ -223,31 +195,13 @@ fun LoginContent(
     Spacer(modifier = Modifier.height(30.dp.responsive(30.dp, 40.dp, 32.dp, deviceSize)))
 
     LoginForm(
-        email = email,
-        password = password,
-        rememberMe = rememberMe,
-        emailError = emailError,
-        passwordError = passwordError,
+        uiState = uiState,
         deviceSize = deviceSize,
-        onEmailChange = {
-            email = it
-            emailError = null
-        },
-        onPasswordChange = {
-            password = it
-            passwordError = null
-        },
-        onRememberMeChange = { rememberMe = it },
-        onLogin = { emailErr, passErr ->
-            emailError = emailErr
-            passwordError = passErr
-            if (emailErr == null && passErr == null) {
-                val loginRequest = LoginRequest(email = email, password = password)
-                viewModel.login(loginRequest)
-            }
-        },
-        onNavigateToRegister = { navController.navigate("register_page") },
-        isLoading = viewModel.uiState.value is Resource.Loading
+        onEmailChange = viewModel::onEmailChange,
+        onPasswordChange = viewModel::onPasswordChange,
+        onRememberMeChange = viewModel::onRememberMeChange,
+        onLogin = viewModel::login,
+        onNavigateToRegister = { navController.navigate("register_page") }
     )
 
     Spacer(modifier = Modifier.height(50.dp.responsive(50.dp, 60.dp, 40.dp, deviceSize)))
@@ -256,15 +210,10 @@ fun LoginContent(
 @Composable
 private fun LoginFormOnly(
     deviceSize: DeviceSize,
+    uiState: LoginUiState,
     viewModel: LoginPageViewModel,
     navController: NavController
 ) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var rememberMe by remember { mutableStateOf(false) }
-    var emailError by remember { mutableStateOf<String?>(null) }
-    var passwordError by remember { mutableStateOf<String?>(null) }
-
     Text(
         text = "Giriş Yap",
         fontSize = 32.sp,
@@ -273,63 +222,41 @@ private fun LoginFormOnly(
     )
 
     LoginForm(
-        email = email,
-        password = password,
-        rememberMe = rememberMe,
-        emailError = emailError,
-        passwordError = passwordError,
+        uiState = uiState,
         deviceSize = deviceSize,
-        onEmailChange = {
-            email = it
-            emailError = null
-        },
-        onPasswordChange = {
-            password = it
-            passwordError = null
-        },
-        onRememberMeChange = { rememberMe = it },
-        onLogin = { emailErr, passErr ->
-            emailError = emailErr
-            passwordError = passErr
-            if (emailErr == null && passErr == null) {
-                val loginRequest = LoginRequest(email = email, password = password)
-                viewModel.login(loginRequest)
-            }
-        },
-        onNavigateToRegister = { navController.navigate("register_page") },
-        isLoading = viewModel.uiState.value is Resource.Loading
+        onEmailChange = viewModel::onEmailChange,
+        onPasswordChange = viewModel::onPasswordChange,
+        onRememberMeChange = viewModel::onRememberMeChange,
+        onLogin = viewModel::login,
+        onNavigateToRegister = { navController.navigate("register_page") }
     )
 }
 
 @Composable
 private fun LoginForm(
-    email: String,
-    password: String,
-    rememberMe: Boolean,
-    emailError: String?,
-    passwordError: String?,
+    uiState: LoginUiState,
     deviceSize: DeviceSize,
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onRememberMeChange: (Boolean) -> Unit,
-    onLogin: (String?, String?) -> Unit,
-    onNavigateToRegister: () -> Unit,
-    isLoading: Boolean
+    onLogin: () -> Unit,
+    onNavigateToRegister: () -> Unit
 ) {
-    // Email TextField
+    val isLoading = uiState.loginState is Resource.Loading
+
+    // Email
     Column {
-        LoginTextFields(
+        AuthTextFields(
             onValueChange = onEmailChange,
             label = "E-mail",
-            value = email,
+            value = uiState.email,
             deviceSize = deviceSize
         )
-        if (emailError != null) {
+        if (uiState.emailError != null) {
             Text(
-                text = emailError,
-                color = Color.Red,
+                text = uiState.emailError,
+                color = colorResource(id = R.color.error),
                 fontSize = 12f.responsiveSp(12f, 14f, 16f, deviceSize),
-                textAlign = TextAlign.Start,
                 modifier = Modifier.padding(start = 4.dp, top = 4.dp)
             )
         }
@@ -337,20 +264,19 @@ private fun LoginForm(
 
     Spacer(modifier = Modifier.height(21.dp.responsive(21.dp, 24.dp, 28.dp, deviceSize)))
 
-    // Password TextField
+    // Password
     Column {
-        LoginTextFields(
+        AuthTextFields(
             onValueChange = onPasswordChange,
             label = "Şifre",
-            value = password,
+            value = uiState.password,
             deviceSize = deviceSize
         )
-        if (passwordError != null) {
+        if (uiState.passwordError != null) {
             Text(
-                text = passwordError,
-                color = Color.Red,
+                text = uiState.passwordError,
+                color = colorResource(id = R.color.error),
                 fontSize = 12f.responsiveSp(12f, 14f, 16f, deviceSize),
-                textAlign = TextAlign.Start,
                 modifier = Modifier.padding(start = 4.dp, top = 4.dp)
             )
         }
@@ -358,7 +284,7 @@ private fun LoginForm(
 
     Spacer(modifier = Modifier.height(15.dp.responsive(15.dp, 20.dp, 24.dp, deviceSize)))
 
-    // Checkbox Row
+    // Remember Me
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -366,7 +292,7 @@ private fun LoginForm(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Checkbox(
-                checked = rememberMe,
+                checked = uiState.rememberMe,
                 onCheckedChange = onRememberMeChange,
                 colors = CheckboxDefaults.colors(
                     checkedColor = colorResource(id = R.color.primary_purple)
@@ -387,26 +313,8 @@ private fun LoginForm(
 
     Spacer(modifier = Modifier.height(35.dp.responsive(35.dp, 40.dp, 48.dp, deviceSize)))
 
-    // Login Button
-    LoginButton(
-        onClick = {
-            var emailErr: String? = null
-            var passErr: String? = null
-
-            if (email.isBlank()) {
-                emailErr = "E-posta boş olamaz"
-            } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                emailErr = "Geçerli bir e-posta giriniz"
-            }
-
-            if (password.isBlank()) {
-                passErr = "Şifre boş olamaz"
-            } else if (password.length < 6) {
-                passErr = "Şifre en az 6 karakter olmalıdır"
-            }
-
-            onLogin(emailErr, passErr)
-        },
+    AuthButton(
+        onClick = onLogin,
         colorRes = R.color.primary_purple,
         isLoading = isLoading,
         borderColor = R.color.border_transparent,
@@ -416,8 +324,7 @@ private fun LoginForm(
 
     Spacer(modifier = Modifier.height(17.dp.responsive(17.dp, 20.dp, 24.dp, deviceSize)))
 
-    // Register Button
-    LoginButton(
+    AuthButton(
         onClick = onNavigateToRegister,
         colorRes = R.color.transparent,
         borderColor = R.color.border_default,
@@ -426,108 +333,25 @@ private fun LoginForm(
     )
 }
 
-@Composable
-fun LoginTextFields(
-    onValueChange: (String) -> Unit,
-    label: String,
-    value: String,
-    deviceSize: DeviceSize
-) {
-    TextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = {
-            Text(
-                text = label,
-                color = Color.Gray,
-                fontSize = 14f.responsiveSp(14f, 16f, 18f, deviceSize)
-            )
-        },
-        singleLine = true,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(60.dp.responsive(60.dp, 65.dp, 70.dp, deviceSize))
-            .clip(RoundedCornerShape(10.dp)),
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = colorResource(id = R.color.surface_light),
-            unfocusedContainerColor = colorResource(id = R.color.surface_dark),
-            disabledContainerColor = colorResource(id = R.color.surface_dark),
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
-            disabledIndicatorColor = Color.Transparent,
-            focusedLabelColor = colorResource(id = R.color.surface_light),
-            cursorColor = colorResource(id = R.color.white),
-            focusedTextColor = colorResource(id = R.color.white),
-            unfocusedTextColor = colorResource(id = R.color.white),
-        ),
-        shape = RoundedCornerShape(10.dp)
-    )
-}
-
-@Composable
-fun LoginButton(
-    onClick: () -> Unit,
-    colorRes: Int,
-    borderColor: Int = colorRes,
-    label: String,
-    textColor: Color = colorResource(id = R.color.text_primary),
-    isLoading: Boolean = false,
-    deviceSize: DeviceSize
-) {
-    Button(
-        enabled = !isLoading,
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(60.dp.responsive(60.dp, 65.dp, 70.dp, deviceSize))
-            .clip(RoundedCornerShape(10.dp))
-            .border(
-                2.dp,
-                color = colorResource(id = borderColor),
-                shape = RoundedCornerShape(10.dp)
-            ),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = colorResource(id = colorRes)
-        ),
-        shape = RoundedCornerShape(10.dp)
-    ) {
-        if (isLoading) {
-            CircularProgressIndicator(
-                color = colorResource(id = R.color.white),
-                strokeWidth = 2.dp,
-                modifier = Modifier.size(24.dp)
-            )
-        } else {
-            Text(
-                text = label,
-                color = textColor,
-                fontSize = 16f.responsiveSp(16f, 18f, 20f, deviceSize)
-            )
-        }
-    }
-}
 
 @Composable
 private fun HandleUIState(
-    uiState: Resource<*>?,
+    loginState: Resource<*>?,
     snackbarHostState: SnackbarHostState,
     navController: NavController
 ) {
-    when (uiState) {
-        is Resource.Success -> {
-            LaunchedEffect(Unit) {
-                snackbarHostState.showSnackbar("Giriş başarılı")
+    LaunchedEffect(loginState) {
+        when (loginState) {
+            is Resource.Success -> {
+                launch { snackbarHostState.showSnackbar("Giriş başarılı") }
+                navController.navigate("home_page") {
+                    popUpTo("login_page") { inclusive = true }
+                }
             }
-            navController.navigate("home_page") {
-                popUpTo("login_page") { inclusive = true }
+            is Resource.Error -> {
+                snackbarHostState.showSnackbar(loginState.message ?: "Bir hata oluştu")
             }
+            else -> {}
         }
-        is Resource.Error -> {
-            val errorMessage = uiState.message ?: "Bir hata oluştu"
-            LaunchedEffect(errorMessage) {
-                snackbarHostState.showSnackbar(errorMessage)
-            }
-        }
-        else -> {}
     }
 }

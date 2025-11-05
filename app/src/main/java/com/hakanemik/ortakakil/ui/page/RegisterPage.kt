@@ -1,9 +1,6 @@
 package com.hakanemik.ortakakil.ui.page
 
-import LoginButton
-import LoginTextFields
 import android.annotation.SuppressLint
-import android.util.Patterns
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -27,10 +24,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,52 +34,50 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.hakanemik.ortakakil.R
-import com.hakanemik.ortakakil.entity.RegisterRequest
+import com.hakanemik.ortakakil.entity.RegisterUiState
 import com.hakanemik.ortakakil.entity.Resource
-import com.hakanemik.ortakakil.ui.util.DeviceSize
-import com.hakanemik.ortakakil.ui.util.currentDeviceSizeHelper
-import com.hakanemik.ortakakil.ui.util.responsive
-import com.hakanemik.ortakakil.ui.util.responsiveSp
-import com.hakanemik.ortakakil.viewmodel.LoginPageViewModel
+import com.hakanemik.ortakakil.helper.DeviceSize
+import com.hakanemik.ortakakil.helper.currentDeviceSizeHelper
+import com.hakanemik.ortakakil.helper.responsive
+import com.hakanemik.ortakakil.helper.responsiveSp
+import com.hakanemik.ortakakil.ui.utils.AuthButton
+import com.hakanemik.ortakakil.ui.utils.AuthTextFields
 import com.hakanemik.ortakakil.viewmodel.RegisterPageViewModel
+
+
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun RegisterPage(navController: NavController, snackbarHostState: SnackbarHostState) {
-    val viewModel: RegisterPageViewModel = viewModel()
-    val uiState by viewModel.uiState.observeAsState()
+    val viewModel: RegisterPageViewModel =  hiltViewModel()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val deviceSize = currentDeviceSizeHelper()
+
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
-    ) {  innerPadding ->
+    ) { _ ->
+
 
         when (deviceSize) {
-            DeviceSize.Compact -> {
-                // Telefon - Dikey layout
-                CompactRegisterLayout(deviceSize,viewModel, navController)
-            }
-            DeviceSize.Medium -> {
-                // Tablet - Ortalanmış layout
-                MediumRegisterLayout(deviceSize,viewModel, navController)
-            }
-            DeviceSize.Expanded -> {
-                // Masaüstü - Yatay split layout
-                ExpandedRegisterLayout(deviceSize,viewModel, navController)
-            }
+            DeviceSize.Compact -> CompactRegisterLayout(deviceSize,uiState, viewModel, navController)
+            DeviceSize.Medium -> MediumRegisterLayout(deviceSize,uiState, viewModel, navController)
+            DeviceSize.Expanded -> ExpandedRegisterLayout(deviceSize,uiState, viewModel, navController)
         }
-        HandleUIState(uiState, snackbarHostState, navController)
 
+
+        HandleUIState(uiState.registerState, snackbarHostState, navController) { viewModel.clearUiState() }
     }
 }
-
 @Composable
 private fun CompactRegisterLayout(
     deviceSize: DeviceSize,
+    uiState: RegisterUiState,
     viewModel: RegisterPageViewModel,
     navController: NavController
 ) {
@@ -98,13 +89,15 @@ private fun CompactRegisterLayout(
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        RegisterContent(deviceSize,viewModel, navController)
+        RegisterContent(deviceSize,uiState, viewModel, navController)
     }
 }
+
 
 @Composable
 private fun MediumRegisterLayout(
     deviceSize: DeviceSize,
+    uiState: RegisterUiState,
     viewModel: RegisterPageViewModel,
     navController: NavController
 ) {
@@ -113,10 +106,7 @@ private fun MediumRegisterLayout(
             .fillMaxSize()
             .background(color = colorResource(id = R.color.background_dark))
     ) {
-        // Sol taraf - boş alan
         Spacer(modifier = Modifier.weight(0.15f))
-
-        // Orta - Register formu
         Column(
             modifier = Modifier
                 .weight(0.7f)
@@ -125,17 +115,15 @@ private fun MediumRegisterLayout(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            RegisterContent(deviceSize,viewModel, navController)
+            RegisterContent(deviceSize,uiState, viewModel, navController)
         }
-
-        // Sağ taraf - boş alan
         Spacer(modifier = Modifier.weight(0.15f))
     }
 }
-
 @Composable
 private fun ExpandedRegisterLayout(
     deviceSize: DeviceSize,
+    uiState: RegisterUiState,
     viewModel: RegisterPageViewModel,
     navController: NavController
 ) {
@@ -144,7 +132,6 @@ private fun ExpandedRegisterLayout(
             .fillMaxSize()
             .background(color = colorResource(id = R.color.background_dark))
     ) {
-        // Sol taraf - Logo/Brand alanı
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -170,7 +157,7 @@ private fun ExpandedRegisterLayout(
             )
         }
 
-        // Sağ taraf - Register formu
+
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -180,30 +167,18 @@ private fun ExpandedRegisterLayout(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            RegisterFormOnly(deviceSize,viewModel, navController)
+            RegisterFormOnly(deviceSize,uiState,viewModel, navController)
         }
     }
 }
-
 @Composable
 fun RegisterContent(
     deviceSize: DeviceSize,
+    uiState: RegisterUiState,
     viewModel: RegisterPageViewModel,
     navController: NavController
 ) {
-    var name by remember { mutableStateOf("") }
-    var surname by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-    var nameError by remember { mutableStateOf<String?>(null) }
-    var surnameError by remember { mutableStateOf<String?>(null) }
-    var emailError by remember { mutableStateOf<String?>(null) }
-    var passwordError by remember { mutableStateOf<String?>(null) }
-    var confirmPasswordError by remember { mutableStateOf<String?>(null) }
-
     Spacer(modifier = Modifier.height(100.dp.responsive(100.dp, 60.dp, 40.dp, deviceSize)))
-
     Image(
         painter = painterResource(id = R.drawable.ortak_akil_logo),
         contentDescription = "logo",
@@ -213,7 +188,9 @@ fun RegisterContent(
             .clip(RoundedCornerShape(20.dp))
     )
 
+
     Spacer(modifier = Modifier.height(20.dp.responsive(20.dp, 30.dp, 24.dp, deviceSize)))
+
 
     Text(
         text = "Yeni bir hesap oluştur",
@@ -222,76 +199,34 @@ fun RegisterContent(
         textAlign = TextAlign.Center
     )
 
+
     Spacer(modifier = Modifier.height(25.dp.responsive(25.dp, 35.dp, 32.dp, deviceSize)))
 
+
     RegisterForm(
-        name = name,
-        surname = surname,
-        email = email,
-        password = password,
-        confirmPassword = confirmPassword,
-        nameError = nameError,
-        surnameError = surnameError,
-        emailError = emailError,
-        passwordError = passwordError,
-        confirmPasswordError = confirmPasswordError,
+        uiState=uiState,
         deviceSize = deviceSize,
-        onNameChange = {
-            name = it
-            nameError = null
-        },
-        onSurnameChange = {
-            surname = it
-            surnameError = null
-        },
-        onEmailChange = {
-            email = it
-            emailError = null
-        },
-        onPasswordChange = {
-            password = it
-            passwordError = null
-        },
-        onConfirmPasswordChange = {
-            confirmPassword = it
-            confirmPasswordError = null
-        },
-        onRegister = { nameErr, surnameErr, emailErr, passErr, confirmPassErr ->
-            nameError = nameErr
-            surnameError = surnameErr
-            emailError = emailErr
-            passwordError = passErr
-            confirmPasswordError = confirmPassErr
-
-            if (nameErr == null && surnameErr == null && emailErr == null &&
-                passErr == null && confirmPassErr == null) {
-
-                 val registerRequest = RegisterRequest(name, surname, email, password,confirmPassword)
-                 viewModel.register(registerRequest)
-            }
-        },
-        onNavigateToLogin = { navController.navigate("login_page") }
+        onNameChange = viewModel::onNameChange,
+        onSurnameChange = viewModel::onSurnameChange,
+        onEmailChange = viewModel::onEmailChange,
+        onPasswordChange = viewModel::onPasswordChange,
+        onConfirmPasswordChange = viewModel::onConfirmPasswordChange,
+        onRegister = {viewModel.register()},
+        onNavigateToLogin = { navController.navigate("login_page") },
     )
+
 
     Spacer(modifier = Modifier.height(50.dp.responsive(50.dp, 60.dp, 40.dp, deviceSize)))
 }
-
 @Composable
 private fun RegisterFormOnly(
     deviceSize: DeviceSize,
+    uiState: RegisterUiState,
     viewModel: RegisterPageViewModel,
     navController: NavController
 ) {
-    var name by remember { mutableStateOf("") }
-    var surname by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-    var nameError by remember { mutableStateOf<String?>(null) }
-    var surnameError by remember { mutableStateOf<String?>(null) }
-    var emailError by remember { mutableStateOf<String?>(null) }
-    var passwordError by remember { mutableStateOf<String?>(null) }
-    var confirmPasswordError by remember { mutableStateOf<String?>(null) }
+
+
 
     Text(
         text = "Yeni bir hesap oluştur",
@@ -300,110 +235,67 @@ private fun RegisterFormOnly(
         textAlign = TextAlign.Center,
         modifier = Modifier.padding(bottom = 32.dp)
     )
-
     RegisterForm(
-        name = name,
-        surname = surname,
-        email = email,
-        password = password,
-        confirmPassword = confirmPassword,
-        nameError = nameError,
-        surnameError = surnameError,
-        emailError = emailError,
-        passwordError = passwordError,
-        confirmPasswordError = confirmPasswordError,
+        uiState = uiState,
         deviceSize = deviceSize,
-        onNameChange = {
-            name = it
-            nameError = null
-        },
-        onSurnameChange = {
-            surname = it
-            surnameError = null
-        },
-        onEmailChange = {
-            email = it
-            emailError = null
-        },
-        onPasswordChange = {
-            password = it
-            passwordError = null
-        },
-        onConfirmPasswordChange = {
-            confirmPassword = it
-            confirmPasswordError = null
-        },
-        onRegister = { nameErr, surnameErr, emailErr, passErr, confirmPassErr ->
-            nameError = nameErr
-            surnameError = surnameErr
-            emailError = emailErr
-            passwordError = passErr
-            confirmPasswordError = confirmPassErr
-
-            if (nameErr == null && surnameErr == null && emailErr == null &&
-                passErr == null && confirmPassErr == null) {
-                val registerRequest = RegisterRequest(name, surname, email, password,confirmPassword)
-                viewModel.register(registerRequest)
-            }
-        },
-        onNavigateToLogin = { navController.navigate("login_page") }
+        onNameChange = viewModel::onNameChange,
+        onSurnameChange = viewModel::onSurnameChange,
+        onEmailChange = viewModel::onEmailChange,
+        onPasswordChange = viewModel::onPasswordChange,
+        onConfirmPasswordChange = viewModel::onConfirmPasswordChange,
+        onRegister = { viewModel.register() },
+        onNavigateToLogin = { navController.navigate("login_page") },
     )
 }
-
 @Composable
 private fun RegisterForm(
-    name: String,
-    surname: String,
-    email: String,
-    password: String,
-    confirmPassword: String,
-    nameError: String?,
-    surnameError: String?,
-    emailError: String?,
-    passwordError: String?,
-    confirmPasswordError: String?,
+    uiState: RegisterUiState,
     deviceSize: DeviceSize,
     onNameChange: (String) -> Unit,
     onSurnameChange: (String) -> Unit,
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onConfirmPasswordChange: (String) -> Unit,
-    onRegister: (String?, String?, String?, String?, String?) -> Unit,
-    onNavigateToLogin: () -> Unit
-) {
-    // Name TextField with Error
+    onRegister: () -> Unit,
+    onNavigateToLogin: () -> Unit,
+)
+{
+    val isLoading = uiState.registerState is Resource.Loading
     Column {
-        LoginTextFields(
-            onValueChange = onNameChange,
-            label = "İsim",
-            value = name,
-            deviceSize = deviceSize
-        )
-        if (nameError != null) {
-            Text(
-                text = nameError,
-                color = Color.Red,
-                fontSize = 12f.responsiveSp(12f, 14f, 16f, deviceSize),
-                textAlign = TextAlign.Start,
-                modifier = Modifier.padding(start = 4.dp, top = 4.dp)
+        Column {
+            AuthTextFields(
+                onValueChange = onNameChange,
+                label = "İsim",
+                value = uiState.name,
+                deviceSize = deviceSize
             )
+            if (uiState.nameError != null) {
+                Text(
+                    text = uiState.nameError,
+                    color = colorResource(id = R.color.error),
+                    fontSize = 12f.responsiveSp(12f, 14f, 16f, deviceSize),
+                    textAlign = TextAlign.Start,
+                    modifier = Modifier.padding(start = 4.dp, top = 4.dp)
+                )
+            }
         }
-    }
+
 
     Spacer(modifier = Modifier.height(15.dp.responsive(15.dp, 18.dp, 20.dp, deviceSize)))
 
-    // Surname TextField with Error
+
+// Surname
     Column {
-        LoginTextFields(
+        AuthTextFields(
             onValueChange = onSurnameChange,
             label = "Soyisim",
-            value = surname,
+            value = uiState.surname,
             deviceSize = deviceSize
         )
-        if (surnameError != null) {
+        if (uiState.surnameError != null) {
             Text(
-                text = surnameError,
-                color = Color.Red,
+                text =  uiState.surnameError,
+                color = colorResource(id = R.color.error),
                 fontSize = 12f.responsiveSp(12f, 14f, 16f, deviceSize),
                 textAlign = TextAlign.Start,
                 modifier = Modifier.padding(start = 4.dp, top = 4.dp)
@@ -411,20 +303,20 @@ private fun RegisterForm(
         }
     }
 
-    Spacer(modifier = Modifier.height(15.dp.responsive(15.dp, 18.dp, 20.dp, deviceSize)))
 
-    // Email TextField with Error
+    Spacer(modifier = Modifier.height(15.dp.responsive(15.dp, 18.dp, 20.dp, deviceSize)))
+    // Email
     Column {
-        LoginTextFields(
+        AuthTextFields(
             onValueChange = onEmailChange,
             label = "E-mail",
-            value = email,
+            value = uiState.email,
             deviceSize = deviceSize
         )
-        if (emailError != null) {
+        if (uiState.emailError != null) {
             Text(
-                text = emailError,
-                color = Color.Red,
+                text = uiState.emailError,
+                color = colorResource(id = R.color.error),
                 fontSize = 12f.responsiveSp(12f, 14f, 16f, deviceSize),
                 textAlign = TextAlign.Start,
                 modifier = Modifier.padding(start = 4.dp, top = 4.dp)
@@ -432,118 +324,71 @@ private fun RegisterForm(
         }
     }
 
+
     Spacer(modifier = Modifier.height(15.dp.responsive(15.dp, 18.dp, 20.dp, deviceSize)))
 
-    // Password TextField with Error
+
+// Password
     Column {
-        LoginTextFields(
+        AuthTextFields(
             onValueChange = onPasswordChange,
             label = "Şifre",
-            value = password,
+            value = uiState.password,
             deviceSize = deviceSize
         )
-        if (passwordError != null) {
+        if (uiState.passwordError != null) {
             Text(
-                text = passwordError,
-                color = Color.Red,
+                text = uiState.passwordError,
+                color = colorResource(id = R.color.error),
                 fontSize = 12f.responsiveSp(12f, 14f, 16f, deviceSize),
                 textAlign = TextAlign.Start,
                 modifier = Modifier.padding(start = 4.dp, top = 4.dp)
             )
         }
     }
+
 
     Spacer(modifier = Modifier.height(15.dp.responsive(15.dp, 18.dp, 20.dp, deviceSize)))
-
-    // Confirm Password TextField with Error
+    // Confirm Password
     Column {
-        LoginTextFields(
+        AuthTextFields(
             onValueChange = onConfirmPasswordChange,
             label = "Şifre Tekrar",
-            value = confirmPassword,
+            value = uiState.confirmPassword,
             deviceSize = deviceSize
         )
-        if (confirmPasswordError != null) {
+        if (uiState.confirmPasswordError != null) {
             Text(
-                text = confirmPasswordError,
-                color = Color.Red,
+                text = uiState.confirmPasswordError,
+                color = colorResource(id = R.color.error),
                 fontSize = 12f.responsiveSp(12f, 14f, 16f, deviceSize),
                 textAlign = TextAlign.Start,
                 modifier = Modifier.padding(start = 4.dp, top = 4.dp)
             )
         }
     }
+
 
     Spacer(modifier = Modifier.height(30.dp.responsive(30.dp, 35.dp, 40.dp, deviceSize)))
 
-    // Register Button with Validation
-    LoginButton(
-        onClick = {
-            var nameErr: String? = null
-            var surnameErr: String? = null
-            var emailErr: String? = null
-            var passErr: String? = null
-            var confirmPassErr: String? = null
 
-            // Name validation
-            if (name.isBlank()) {
-                nameErr = "İsim boş olamaz"
-            } else if (name.length < 2) {
-                nameErr = "İsim en az 2 karakter olmalıdır"
-            } else if (!name.matches(Regex("^[a-zA-ZığüşöçİĞÜŞÖÇ ]+$"))) {
-                nameErr = "İsim sadece harf içermelidir"
-            }
-
-            // Surname validation
-            if (surname.isBlank()) {
-                surnameErr = "Soyisim boş olamaz"
-            } else if (surname.length < 2) {
-                surnameErr = "Soyisim en az 2 karakter olmalıdır"
-            } else if (!surname.matches(Regex("^[a-zA-ZığüşöçİĞÜŞÖÇ ]+$"))) {
-                surnameErr = "Soyisim sadece harf içermelidir"
-            }
-
-            // Email validation
-            if (email.isBlank()) {
-                emailErr = "E-posta boş olamaz"
-            } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                emailErr = "Geçerli bir e-posta giriniz"
-            }
-
-            // Password validation
-            if (password.isBlank()) {
-                passErr = "Şifre boş olamaz"
-            } else if (password.length < 6) {
-                passErr = "Şifre en az 6 karakter olmalıdır"
-            } else if (password.length > 20) {
-                passErr = "Şifre en fazla 20 karakter olmalıdır"
-            } else if (!password.matches(Regex(".*[A-Za-z].*"))) {
-                passErr = "Şifre en az bir harf içermelidir"
-            } else if (!password.matches(Regex(".*\\d.*"))) {
-                passErr = "Şifre en az bir rakam içermelidir"
-            }
-
-            // Confirm password validation
-            if (confirmPassword.isBlank()) {
-                confirmPassErr = "Şifre tekrarı boş olamaz"
-            } else if (password != confirmPassword) {
-                confirmPassErr = "Şifreler eşleşmiyor"
-            }
-
-            onRegister(nameErr, surnameErr, emailErr, passErr, confirmPassErr)
-        },
+// Register Button (validasyon ViewModel'de)
+    AuthButton(
+        onClick = onRegister,
         colorRes = R.color.primary_purple,
         borderColor = R.color.border_transparent,
-        label = "Kayıt Ol",
-        deviceSize = deviceSize
+        label = if (isLoading) "Kaydediliyor..." else "Kayıt Ol",
+        deviceSize = deviceSize,
+        isLoading = isLoading
     )
 
-    Spacer(modifier = Modifier.height(20.dp.responsive(20.dp, 24.dp, 28.dp, deviceSize)))
 
-    // Login Navigation Button
+    Spacer(modifier = Modifier.height(20.dp.responsive(20.dp, 24.dp, 28.dp, deviceSize)))
+    // Login Navigation
     TextButton(
         onClick = onNavigateToLogin,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        enabled = !isLoading
     ) {
         Text(
             text = "Zaten hesabın var mı? Giriş Yap",
@@ -552,25 +397,30 @@ private fun RegisterForm(
         )
     }
 }
+}
 @Composable
 private fun HandleUIState(
     uiState: Resource<*>?,
     snackbarHostState: SnackbarHostState,
-    navController: NavController
+    navController: NavController,
+    onConsumed: () -> Unit
 ) {
-    when (uiState) {
-        is Resource.Success -> {
-            LaunchedEffect(Unit) {
+// Tekrarlı tetiklenmeyi önlemek için uiState değişimine bağla
+    LaunchedEffect(uiState) {
+        when (uiState) {
+            is Resource.Success -> {
                 snackbarHostState.showSnackbar("Kayıt Başarılı")
+                onConsumed()
+                navController.navigate("login_page") {
+                    popUpTo("register_page") { inclusive = true }
+                }
             }
-            navController.navigate("login_page")
-        }
-        is Resource.Error -> {
-            val errorMessage = uiState.message ?: "Bir hata oluştu"
-            LaunchedEffect(errorMessage) {
+            is Resource.Error -> {
+                val errorMessage = uiState.message ?: "Bir hata oluştu"
                 snackbarHostState.showSnackbar(errorMessage)
+                onConsumed()
             }
+            else -> Unit
         }
-        else -> {}
     }
 }

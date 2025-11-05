@@ -1,5 +1,7 @@
 package com.hakanemik.ortakakil.retrofit
 
+import com.hakanemik.ortakakil.entity.AiApiResponse
+import com.hakanemik.ortakakil.entity.AiRequest
 import com.hakanemik.ortakakil.entity.LoginApiResponse
 import com.hakanemik.ortakakil.entity.LoginRequest
 import com.hakanemik.ortakakil.entity.RegisterApiResponse
@@ -14,4 +16,6 @@ interface OrtakAkilDaoInterface {
     suspend  fun login(@Body loginRequest: LoginRequest): LoginApiResponse
     @POST("/api/Auth/register")
     suspend fun register(@Body registerRequest: RegisterRequest): RegisterApiResponse
+    @POST("/api/AI/ask")
+    suspend fun aiRequest(@Body aiRequest: AiRequest):AiApiResponse
 }

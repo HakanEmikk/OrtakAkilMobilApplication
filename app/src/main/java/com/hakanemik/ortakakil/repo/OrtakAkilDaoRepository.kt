@@ -1,24 +1,22 @@
 package com.hakanemik.ortakakil.repo
 
-import android.util.Log
+
 import com.google.gson.Gson
+import com.hakanemik.ortakakil.entity.AiApiResponse
+import com.hakanemik.ortakakil.entity.AiRequest
 import com.hakanemik.ortakakil.entity.ErrorResponse
 import com.hakanemik.ortakakil.entity.LoginApiResponse
 import com.hakanemik.ortakakil.entity.LoginRequest
 import com.hakanemik.ortakakil.entity.RegisterApiResponse
 import com.hakanemik.ortakakil.entity.RegisterRequest
 import com.hakanemik.ortakakil.entity.Resource
-import com.hakanemik.ortakakil.retrofit.ApiUtils
 import com.hakanemik.ortakakil.retrofit.OrtakAkilDaoInterface
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import javax.inject.Inject
 
-class OrtakAkilDaoRepository {
-    var ortakAkilDaoInterface: OrtakAkilDaoInterface
-    init {
-        ortakAkilDaoInterface=ApiUtils.getOrtakAkilDaoInterface()
-    }
+class OrtakAkilDaoRepository @Inject constructor(
+    private val ortakAkilDaoInterface: OrtakAkilDaoInterface
+){
+
   suspend  fun login(loginRequest: LoginRequest): Resource<LoginApiResponse> {
    return try {
         val response=ortakAkilDaoInterface.login(loginRequest)
@@ -65,6 +63,31 @@ class OrtakAkilDaoRepository {
             Resource.Error("Beklenmeyen hata: ${e.localizedMessage}")
         }
     }
+
+    suspend fun aiRequest(aiRequest: AiRequest):Resource<AiApiResponse>{
+        return try {
+            val response =ortakAkilDaoInterface.aiRequest(aiRequest)
+            Resource.Success(response)
+        }catch (e: retrofit2.HttpException){
+            val errorBody=e.response()?.errorBody()?.string()
+            val backendMessage= try {
+                Gson().fromJson(errorBody,ErrorResponse::class.java).message
+            }catch (ex:Exception){
+                null
+            }
+            val userFriendlyMessage = when (backendMessage) {
+
+                else -> "Bir hata oluştu, lütfen tekrar deneyin"
+            }
+            Resource.Error(userFriendlyMessage, e.code())
+        } catch (e: java.net.UnknownHostException) {
+            Resource.Error("İnternet bağlantınızı kontrol edin")
+        }
+        catch (e:Exception){
+            Resource.Error("Beklenmeyen hata: ${e.localizedMessage}")
+        }
+    }
+
 
 
 }

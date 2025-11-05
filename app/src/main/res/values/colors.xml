@@ -2,10 +2,10 @@
 <resources>
 
     <!-- Primary Colors -->
-    <color name="primary_purple">#6c5ce7</color>
-    <color name="primary_purple_dark">#5a4bcf</color>
-    <color name="gradient_start">#667eea</color>
-    <color name="gradient_end">#764ba2</color>
+    <color name="primary_purple">#A855F7</color>
+    <color name="primary_purple_dark">#9333EA</color>
+    <color name="gradient_start">#A855F7</color>
+    <color name="gradient_end">#EC4899</color>
 
     <!-- Background Colors -->
     <color name="background_dark">#1a1a1a</color>
@@ -23,14 +23,14 @@
     <color name="divider">#2d2d2d</color>
 
     <!-- Interactive Colors -->
-    <color name="purple_overlay_10">#1A6c5ce7</color>
-    <color name="purple_overlay_20">#336c5ce7</color>
+    <color name="purple_overlay_10">#1AA855F7</color>
+    <color name="purple_overlay_20">#33A855F7</color>
     <color name="white_overlay_10">#1AFFFFFF</color>
 
     <!-- Status Colors -->
-    <color name="success">#00C851</color>
-    <color name="warning">#ffbb33</color>
-    <color name="error">#ff4444</color>
+    <color name="success">#22C55E</color>
+    <color name="warning">#FACC15</color>
+    <color name="error">#EF4444</color>
 
     <!-- Transparent -->
     <color name="transparent">#00000000</color>

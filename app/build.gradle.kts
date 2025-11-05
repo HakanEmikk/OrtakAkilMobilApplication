@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.dagger.hilt.android") // Hilt plugin buraya
+    kotlin("kapt")
 }
 
 android {
@@ -62,4 +64,10 @@ dependencies {
     implementation("androidx.compose.runtime:runtime-livedata:1.8.3")
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
+    implementation("androidx.datastore:datastore-preferences-core:1.1.1")
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+    implementation("com.google.dagger:hilt-android:2.51")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    kapt("com.google.dagger:hilt-compiler:2.51")
 }

@@ -12,14 +12,16 @@ import com.hakanemik.ortakakil.entity.RegisterRequest
 import com.hakanemik.ortakakil.entity.Resource
 import com.hakanemik.ortakakil.retrofit.OrtakAkilDaoInterface
 import javax.inject.Inject
+import javax.inject.Named
 
 class OrtakAkilDaoRepository @Inject constructor(
-    private val ortakAkilDaoInterface: OrtakAkilDaoInterface
+    private val ortakAkilDaoInterface: OrtakAkilDaoInterface,
+    @Named("authApi") private val authApi: OrtakAkilDaoInterface,
 ){
 
   suspend  fun login(loginRequest: LoginRequest): Resource<LoginApiResponse> {
    return try {
-        val response=ortakAkilDaoInterface.login(loginRequest)
+        val response=authApi.login(loginRequest)
         Resource.Success(response)
     }catch (e: retrofit2.HttpException){
         val errorBody=e.response()?.errorBody()?.string()
@@ -42,7 +44,7 @@ class OrtakAkilDaoRepository @Inject constructor(
   }
     suspend fun register(registerRequest: RegisterRequest):Resource<RegisterApiResponse>{
         return try {
-            val response=ortakAkilDaoInterface.register(registerRequest)
+            val response=authApi.register(registerRequest)
             Resource.Success(response)
         }catch (e: retrofit2.HttpException){
             val errorBody=e.response()?.errorBody()?.string()

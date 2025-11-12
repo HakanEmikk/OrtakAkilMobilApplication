@@ -44,14 +44,6 @@ fun LoginPage(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val deviceSize = currentDeviceSizeHelper()
 
-    // Auto-login check
-    LaunchedEffect(uiState.isAutoLogging) {
-        if (uiState.isAutoLogging) {
-            navController.navigate("home_page") {
-
-            }
-        }
-    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),

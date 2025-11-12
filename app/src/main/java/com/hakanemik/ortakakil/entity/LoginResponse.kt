@@ -13,6 +13,9 @@ data class LoginResponse(
     @SerializedName("tokenExpiry")
     @Expose
     var tokenExpiry: String,
+    @SerializedName("refreshExpiry")
+    @Expose
+    var refreshExpiry: String,
     @SerializedName("user")
     @Expose
     var user: User

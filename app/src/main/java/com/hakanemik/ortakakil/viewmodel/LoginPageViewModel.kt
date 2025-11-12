@@ -1,13 +1,16 @@
 package com.hakanemik.ortakakil.viewmodel
 
+import android.os.Build
 import android.util.Patterns
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.hakanemik.ortakakil.entity.LoginApiResponse
 import com.hakanemik.ortakakil.entity.LoginRequest
 import com.hakanemik.ortakakil.entity.LoginUiState
 import com.hakanemik.ortakakil.entity.Resource
+import com.hakanemik.ortakakil.helper.TimeUtils
 import com.hakanemik.ortakakil.repo.OrtakAkilDaoRepository
+import com.hakanemik.ortakakil.repo.TokenManager
 import com.hakanemik.ortakakil.repo.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,33 +18,18 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
+import javax.inject.Named
 
 
 @HiltViewModel
 class LoginPageViewModel @Inject constructor(
-    private val repository: OrtakAkilDaoRepository,
-    private val userRepository: UserRepository
+     private val repository: OrtakAkilDaoRepository,
+    private val userRepository: UserRepository,
+    private val tokenManager: TokenManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
-
-    init {
-        checkRememberedUser()
-    }
-
-    // Token kontrolü
-    private fun checkRememberedUser() {
-        viewModelScope.launch {
-            val token = userRepository.getToken()
-            val userId = userRepository.getUserId()
-
-            if (token != null && userId != null) {
-                _uiState.value = _uiState.value.copy(isAutoLogging = true)
-            }
-        }
-    }
 
     fun onEmailChange(value: String) {
         _uiState.value = _uiState.value.copy(
@@ -59,8 +47,13 @@ class LoginPageViewModel @Inject constructor(
 
     fun onRememberMeChange(value: Boolean) {
         _uiState.value = _uiState.value.copy(rememberMe = value)
+        viewModelScope.launch {
+            userRepository.saveRememberMe(_uiState.value.rememberMe)
+        }
+
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun login() {
         val currentState = _uiState.value
         val email = currentState.email.trim()
@@ -102,10 +95,21 @@ class LoginPageViewModel @Inject constructor(
                 is Resource.Success -> {
                     val user = result.data.data?.user
                     val token = result.data.data?.accessToken
+                    val refreshToken=result.data.data?.refreshToken
+                    val now = System.currentTimeMillis()
+                    val tokenExp= result.data.data?.tokenExpiry
+                    val refreshExp= result.data.data?.refreshExpiry
+
+                    val accessExpMs = tokenExp?.let { TimeUtils.isoToMillis(it) }
+                        ?: (now + 15*60*1000) // backend "expiresIn" yollamıyorsa fallback
+
+                    val refreshExpMs = refreshExp?.let { TimeUtils.isoToMillis(it) }
+                        ?: (now + 30L*24*60*60*1000)
+
 
                     // Kullanıcı bilgilerini kaydet
-                    if (user != null && token != null) {
-                        userRepository.saveToken(token)
+                    if (user != null && token != null && refreshToken != null) {
+                        tokenManager.saveTokens(token,refreshToken,accessExpMs,refreshExpMs)
                         userRepository.saveUserInfo(
                             userId = user.id.toString(),
                             userName = user.name ?: "Kullanıcı",

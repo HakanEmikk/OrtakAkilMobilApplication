@@ -3,15 +3,21 @@ package com.hakanemik.ortakakil
 
 import android.annotation.SuppressLint
 import android.content.pm.ActivityInfo
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -22,11 +28,15 @@ import com.hakanemik.ortakakil.ui.page.AnswerPage
 import com.hakanemik.ortakakil.ui.page.HomePage
 import com.hakanemik.ortakakil.ui.page.LoginPage
 import com.hakanemik.ortakakil.ui.page.RegisterPage
+import com.hakanemik.ortakakil.ui.page.SplashPage
 import com.hakanemik.ortakakil.ui.theme.OrtakAkilTheme
+import com.hakanemik.ortakakil.viewmodel.AuthViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.O)
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,9 +50,9 @@ class MainActivity : ComponentActivity() {
 
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
-                    snackbarHost = { androidx.compose.material3.SnackbarHost(hostState = snackbarHostState) }
+                    snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
                 ) {  innerPadding ->
-                    PageSelect(navController,snackbarHostState)
+                    pageSelect(navController,snackbarHostState)
                 }
 
             }
@@ -62,10 +72,19 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@Composable
-fun PageSelect(navController: NavHostController, snackbarHostState: SnackbarHostState) {
 
-    NavHost(navController=navController,startDestination = "login_page"){
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+ fun pageSelect(navController: NavHostController, snackbarHostState: SnackbarHostState) {
+    val authViewModel: AuthViewModel = hiltViewModel()
+    val startDestination by authViewModel.startDestination.collectAsStateWithLifecycle()
+
+    if (startDestination == null){
+        SplashPage()
+        return
+    }
+
+    NavHost(navController=navController,startDestination = startDestination!!){
         composable(route = "login_page"){
             LoginPage(navController,snackbarHostState)
         }

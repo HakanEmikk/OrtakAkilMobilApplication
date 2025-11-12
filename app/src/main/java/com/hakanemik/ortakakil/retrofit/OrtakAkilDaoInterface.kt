@@ -6,6 +6,7 @@ import com.hakanemik.ortakakil.entity.LoginApiResponse
 import com.hakanemik.ortakakil.entity.LoginRequest
 import com.hakanemik.ortakakil.entity.RegisterApiResponse
 import com.hakanemik.ortakakil.entity.RegisterRequest
+import kotlinx.serialization.descriptors.StructureKind
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.FormUrlEncoded
@@ -18,4 +19,6 @@ interface OrtakAkilDaoInterface {
     suspend fun register(@Body registerRequest: RegisterRequest): RegisterApiResponse
     @POST("/api/AI/ask")
     suspend fun aiRequest(@Body aiRequest: AiRequest):AiApiResponse
+    @POST("/api/Auth/refresh-token")
+    suspend fun refresh(@Body body: Map<String,String>):LoginApiResponse
 }

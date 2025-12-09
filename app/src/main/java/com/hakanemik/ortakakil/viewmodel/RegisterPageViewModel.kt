@@ -6,7 +6,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
-import com.hakanemik.ortakakil.entity.RegisterApiResponse
 import com.hakanemik.ortakakil.entity.RegisterRequest
 import com.hakanemik.ortakakil.entity.RegisterUiState
 import com.hakanemik.ortakakil.entity.Resource

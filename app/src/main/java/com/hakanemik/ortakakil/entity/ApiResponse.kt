@@ -3,17 +3,16 @@ package com.hakanemik.ortakakil.entity
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
 
-data class RegisterApiResponse(
+data class ApiResponse<T>(
     @SerializedName("success")
-    @Expose
     val success: Boolean,
+
     @SerializedName("message")
-    @Expose
-    val message: String?,
+    val message: String? = null,
+
     @SerializedName("data")
-    @Expose
-    val data: User?,
+    val data: T? = null,
+
     @SerializedName("error")
-    @Expose
-    val error: List<String?>
-) {}
+    val error: List<String?>? = null
+)

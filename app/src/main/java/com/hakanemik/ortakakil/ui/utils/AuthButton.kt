@@ -35,7 +35,7 @@ fun AuthButton(
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .height(60.dp.responsive(60.dp, 65.dp, 70.dp, deviceSize))
+            .height(56.dp.responsive(56.dp, 60.dp, 56.dp, deviceSize))
             .clip(RoundedCornerShape(10.dp))
             .border(
                 2.dp,
@@ -45,7 +45,7 @@ fun AuthButton(
         colors = ButtonDefaults.buttonColors(
             containerColor = colorResource(id = colorRes)
         ),
-        shape = RoundedCornerShape(10.dp)
+        shape = RoundedCornerShape(14.dp)
     ) {
         if (isLoading) {
             CircularProgressIndicator(

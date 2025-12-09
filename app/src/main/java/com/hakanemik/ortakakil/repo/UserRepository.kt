@@ -1,7 +1,8 @@
 package com.hakanemik.ortakakil.repo
 
 import com.hakanemik.ortakakil.data.UserStorage
-import com.hakanemik.ortakakil.entity.LoginApiResponse
+import com.hakanemik.ortakakil.entity.ApiResponse
+import com.hakanemik.ortakakil.entity.LoginResponse
 import com.hakanemik.ortakakil.retrofit.OrtakAkilDaoInterface
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -36,7 +37,7 @@ class UserRepository @Inject constructor(
         userStorage.clearAllData()
     }
 
-    suspend fun refreshWithRefreshToken(refreshToken: String): LoginApiResponse {
+    suspend fun refreshWithRefreshToken(refreshToken: String): ApiResponse<LoginResponse> {
         return authApi.refresh(mapOf("refreshToken" to refreshToken))
     }
 

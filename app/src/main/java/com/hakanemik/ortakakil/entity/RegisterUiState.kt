@@ -11,5 +11,5 @@ data class RegisterUiState(
     val emailError: String? = null,
     val passwordError: String? = null,
     val confirmPasswordError: String? = null,
-    val registerState: Resource<RegisterApiResponse>? = null
+    val registerState: Resource<ApiResponse<User>>? = null
 )

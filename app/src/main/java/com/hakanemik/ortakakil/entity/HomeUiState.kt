@@ -3,7 +3,7 @@ package com.hakanemik.ortakakil.entity
 data class HomeUiState(
     val userName: String = "Misafir",
     val userId: String? = null,
-    val isLoading: Boolean = true,
+    val isLoading: Boolean = false,
     val error: String? = null,
     val question: String = "",
     val selected: String = "",

@@ -57,13 +57,6 @@ fun RegisterPage(navController: NavController, snackbarHostState: SnackbarHostSt
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val deviceSize = currentDeviceSizeHelper()
 
-
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
-    ) { _ ->
-
-
         when (deviceSize) {
             DeviceSize.Compact -> CompactRegisterLayout(deviceSize,uiState, viewModel, navController)
             DeviceSize.Medium -> MediumRegisterLayout(deviceSize,uiState, viewModel, navController)
@@ -73,7 +66,7 @@ fun RegisterPage(navController: NavController, snackbarHostState: SnackbarHostSt
 
         HandleUIState(uiState.registerState, snackbarHostState, navController) { viewModel.clearUiState() }
     }
-}
+
 @Composable
 private fun CompactRegisterLayout(
     deviceSize: DeviceSize,

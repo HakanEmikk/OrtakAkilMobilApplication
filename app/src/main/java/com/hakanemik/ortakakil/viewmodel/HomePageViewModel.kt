@@ -3,9 +3,7 @@ package com.hakanemik.ortakakil.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.hakanemik.ortakakil.entity.AiRequest
 import com.hakanemik.ortakakil.entity.HomeUiState
-import com.hakanemik.ortakakil.entity.Resource
 import com.hakanemik.ortakakil.repo.OrtakAkilDaoRepository
 import com.hakanemik.ortakakil.repo.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -35,7 +33,6 @@ class HomePageViewModel @Inject constructor(
     private fun loadUserData() {
         viewModelScope.launch {
             try {
-                _uiState.value = _uiState.value.copy(isLoading = true)
 
                 // Flow ile sürekli dinleme - DataStore değişirse UI otomatik güncellenir
                 userRepository.getUserNameFlow().collectLatest { name ->
@@ -43,7 +40,6 @@ class HomePageViewModel @Inject constructor(
                     _uiState.value = _uiState.value.copy(
                         userName = name ?: "Misafir",
                         userId = userId,
-                        isLoading = false,
                         error = null
                     )
                 }
@@ -59,7 +55,9 @@ class HomePageViewModel @Inject constructor(
     fun aiQuestion(){
        _uiState.value = _uiState.value.copy(isClicked = true)
     }
-
+    fun consumeClick() {
+        _uiState.value = _uiState.value.copy(isClicked = false)
+    }
     fun onQuestionChange(value: String){
         _uiState.value = _uiState.value.copy(question = value)
     }
@@ -67,13 +65,13 @@ class HomePageViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(selected = category)
     }
 
-    fun logout() {
+    fun uiClean() {
         viewModelScope.launch {
             try {
-                userRepository.logout()
-                _uiState.value = HomeUiState(
-                    userName = "Misafir",
-                    isLoading = false
+                _uiState.value = _uiState.value.copy(
+                    isClicked = false,
+                    question = "",
+                    selected = "",
                 )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(

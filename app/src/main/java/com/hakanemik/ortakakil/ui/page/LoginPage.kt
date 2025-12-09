@@ -1,6 +1,8 @@
 package com.hakanemik.ortakakil.ui.page
 
 import android.annotation.SuppressLint
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -16,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -34,7 +37,8 @@ import com.hakanemik.ortakakil.ui.utils.AuthTextFields
 import com.hakanemik.ortakakil.viewmodel.LoginPageViewModel
 import kotlinx.coroutines.launch
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@RequiresApi(Build.VERSION_CODES.O)
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "SuspiciousIndentation")
 @Composable
 fun LoginPage(
     navController: NavController,
@@ -44,11 +48,6 @@ fun LoginPage(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val deviceSize = currentDeviceSizeHelper()
 
-
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
-    ) { _ ->
         when (deviceSize) {
             DeviceSize.Compact -> CompactLoginLayout(deviceSize, uiState, viewModel, navController)
             DeviceSize.Medium -> MediumLoginLayout(deviceSize, uiState, viewModel, navController)
@@ -58,8 +57,9 @@ fun LoginPage(
         // Handle UI State
         HandleUIState(uiState.loginState, snackbarHostState, navController)
     }
-}
 
+
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun CompactLoginLayout(
     deviceSize: DeviceSize,
@@ -79,6 +79,7 @@ private fun CompactLoginLayout(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun MediumLoginLayout(
     deviceSize: DeviceSize,
@@ -106,6 +107,7 @@ private fun MediumLoginLayout(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun ExpandedLoginLayout(
     deviceSize: DeviceSize,
@@ -157,6 +159,7 @@ private fun ExpandedLoginLayout(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun LoginContent(
     deviceSize: DeviceSize,
@@ -171,20 +174,30 @@ fun LoginContent(
         contentDescription = "Logo",
         contentScale = ContentScale.Crop,
         modifier = Modifier
-            .size(200.dp.responsive(200.dp, 250.dp, 200.dp, deviceSize))
+            .size(160.dp.responsive(160.dp, 200.dp, 160.dp, deviceSize))
             .clip(RoundedCornerShape(20.dp))
     )
 
-    Spacer(modifier = Modifier.height(20.dp.responsive(20.dp, 30.dp, 24.dp, deviceSize)))
+    Spacer(modifier = Modifier.height(24.dp.responsive(24.dp, 30.dp, 28.dp, deviceSize)))
 
     Text(
-        text = "Akıllı kararlar ver, topluluğa katıl",
-        fontSize = 15f.responsiveSp(15f, 18f, 20f, deviceSize),
+        text = "Akıllı kararlar ver",
+        fontSize = 28f.responsiveSp(28f, 32f, 36f, deviceSize),
         color = colorResource(id = R.color.text_primary),
+        fontWeight = FontWeight.Bold,
         textAlign = TextAlign.Center
     )
 
-    Spacer(modifier = Modifier.height(30.dp.responsive(30.dp, 40.dp, 32.dp, deviceSize)))
+    Spacer(modifier = Modifier.height(8.dp))
+
+    Text(
+        text = "topluluğa katıl",
+        fontSize = 16f.responsiveSp(16f, 18f, 20f, deviceSize),
+        color = colorResource(id = R.color.text_secondary),
+        textAlign = TextAlign.Center
+    )
+
+    Spacer(modifier = Modifier.height(40.dp.responsive(40.dp, 50.dp, 48.dp, deviceSize)))
 
     LoginForm(
         uiState = uiState,
@@ -196,9 +209,10 @@ fun LoginContent(
         onNavigateToRegister = { navController.navigate("register_page") }
     )
 
-    Spacer(modifier = Modifier.height(50.dp.responsive(50.dp, 60.dp, 40.dp, deviceSize)))
+    Spacer(modifier = Modifier.height(40.dp.responsive(40.dp, 50.dp, 40.dp, deviceSize)))
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun LoginFormOnly(
     deviceSize: DeviceSize,
@@ -210,6 +224,7 @@ private fun LoginFormOnly(
         text = "Giriş Yap",
         fontSize = 32.sp,
         color = colorResource(id = R.color.text_primary),
+        fontWeight = FontWeight.Bold,
         modifier = Modifier.padding(bottom = 32.dp)
     )
 
@@ -249,12 +264,12 @@ private fun LoginForm(
                 text = uiState.emailError,
                 color = colorResource(id = R.color.error),
                 fontSize = 12f.responsiveSp(12f, 14f, 16f, deviceSize),
-                modifier = Modifier.padding(start = 4.dp, top = 4.dp)
+                modifier = Modifier.padding(start = 4.dp, top = 6.dp)
             )
         }
     }
 
-    Spacer(modifier = Modifier.height(21.dp.responsive(21.dp, 24.dp, 28.dp, deviceSize)))
+    Spacer(modifier = Modifier.height(20.dp.responsive(20.dp, 24.dp, 28.dp, deviceSize)))
 
     // Password
     Column {
@@ -262,19 +277,20 @@ private fun LoginForm(
             onValueChange = onPasswordChange,
             label = "Şifre",
             value = uiState.password,
-            deviceSize = deviceSize
+            deviceSize = deviceSize,
+            isPassword = true
         )
         if (uiState.passwordError != null) {
             Text(
                 text = uiState.passwordError,
                 color = colorResource(id = R.color.error),
                 fontSize = 12f.responsiveSp(12f, 14f, 16f, deviceSize),
-                modifier = Modifier.padding(start = 4.dp, top = 4.dp)
+                modifier = Modifier.padding(start = 4.dp, top = 6.dp)
             )
         }
     }
 
-    Spacer(modifier = Modifier.height(15.dp.responsive(15.dp, 20.dp, 24.dp, deviceSize)))
+    Spacer(modifier = Modifier.height(16.dp.responsive(16.dp, 20.dp, 24.dp, deviceSize)))
 
     // Remember Me
     Row(
@@ -287,23 +303,27 @@ private fun LoginForm(
                 checked = uiState.rememberMe,
                 onCheckedChange = onRememberMeChange,
                 colors = CheckboxDefaults.colors(
-                    checkedColor = colorResource(id = R.color.primary_purple)
-                )
+                    checkedColor = colorResource(id = R.color.primary_purple),
+                    uncheckedColor = colorResource(id = R.color.text_secondary)
+                ),
+                modifier = Modifier.size(18.dp)
             )
+            Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = "Beni Hatırla",
-                color = colorResource(id = R.color.text_primary),
+                color = colorResource(id = R.color.text_secondary),
                 fontSize = 14f.responsiveSp(14f, 16f, 18f, deviceSize)
             )
         }
         Text(
             text = "Şifremi Unuttum",
-            color = colorResource(id = R.color.text_primary),
-            fontSize = 14f.responsiveSp(14f, 16f, 18f, deviceSize)
+            color = colorResource(id = R.color.primary_purple),
+            fontSize = 14f.responsiveSp(14f, 16f, 18f, deviceSize),
+            fontWeight = FontWeight.Medium
         )
     }
 
-    Spacer(modifier = Modifier.height(35.dp.responsive(35.dp, 40.dp, 48.dp, deviceSize)))
+    Spacer(modifier = Modifier.height(32.dp.responsive(32.dp, 40.dp, 48.dp, deviceSize)))
 
     AuthButton(
         onClick = onLogin,

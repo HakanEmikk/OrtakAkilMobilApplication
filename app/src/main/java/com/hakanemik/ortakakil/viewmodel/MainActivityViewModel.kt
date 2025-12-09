@@ -4,6 +4,9 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavController
+import com.hakanemik.ortakakil.entity.BottomBarState
+import com.hakanemik.ortakakil.entity.TopBarState
 import com.hakanemik.ortakakil.helper.TimeUtils
 import com.hakanemik.ortakakil.repo.TokenManager
 import com.hakanemik.ortakakil.repo.UserRepository
@@ -17,7 +20,7 @@ import javax.inject.Inject
 
 @RequiresApi(Build.VERSION_CODES.O)
 @HiltViewModel
-class AuthViewModel @Inject constructor(
+class MainActivityViewModel @Inject constructor(
     private val tokenManager: TokenManager,
     private val userRepository: UserRepository
 ) : ViewModel() {
@@ -25,6 +28,11 @@ class AuthViewModel @Inject constructor(
     private val _startDestination = MutableStateFlow<String?>(null)
     val startDestination: StateFlow<String?> = _startDestination.asStateFlow()
 
+    private val _topBarState = MutableStateFlow(TopBarState())
+    val topBarState: StateFlow<TopBarState> = _topBarState.asStateFlow()
+
+    private val _bottomBarState = MutableStateFlow(BottomBarState())
+    val bottomBarState: StateFlow<BottomBarState> = _bottomBarState.asStateFlow()
     init {
         checkInitialNavigation()
     }
@@ -70,7 +78,47 @@ class AuthViewModel @Inject constructor(
 
         }
     }
+    fun setTopBar(
+        title: String,
+        leftIcon: Int? = null,
+        rightIcon: Int? = null,
+        onLeftClick: () -> Unit = {},
+        onRightClick: () -> Unit = {},
+        isVisible: Boolean = true
+    ) {
+        _topBarState.value = TopBarState(
+            title = title,
+            leftIcon = leftIcon,
+            rightIcon = rightIcon,
+            onLeftIconClick = onLeftClick,
+            onRightIconClick = onRightClick,
+            isVisible = isVisible
+        )
+    }
 
+    fun setBottomBar(isVisible: Boolean) {
+        _bottomBarState.value = BottomBarState(isVisible = isVisible)
+    }
+
+    fun hideTopBar() {
+        _topBarState.value = _topBarState.value.copy(isVisible = false)
+    }
+
+    fun showTopBar() {
+        _topBarState.value = _topBarState.value.copy(isVisible = true)
+    }
+
+    fun hideBottomBar() {
+        _bottomBarState.value = BottomBarState(isVisible = false)
+    }
+
+    fun showBottomBar() {
+        _bottomBarState.value = BottomBarState(isVisible = true)
+    }
+
+    fun answerPageBackNavigate(navController: NavController){
+        navController.popBackStack()
+    }
    suspend fun logout() {
         tokenManager.clearTokens()
         userRepository.logout()

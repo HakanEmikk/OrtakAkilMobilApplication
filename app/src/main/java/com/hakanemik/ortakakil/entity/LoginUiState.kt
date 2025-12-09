@@ -6,6 +6,6 @@ data class LoginUiState(
     val rememberMe: Boolean = false,
     val emailError: String? = null,
     val passwordError: String? = null,
-    val loginState: Resource<LoginApiResponse>? = null,
+    val loginState: Resource<ApiResponse<LoginResponse>>? = null,
     val isAutoLogging: Boolean = false
 )

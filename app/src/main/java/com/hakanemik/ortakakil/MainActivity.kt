@@ -65,9 +65,11 @@ import com.hakanemik.ortakakil.entity.TopBarState
 import com.hakanemik.ortakakil.helper.DeviceSize
 import com.hakanemik.ortakakil.helper.currentDeviceSizeHelper
 import com.hakanemik.ortakakil.helper.responsive
+import com.hakanemik.ortakakil.ui.page.AccountInfoPage
 import com.hakanemik.ortakakil.ui.page.AnswerPage
 import com.hakanemik.ortakakil.ui.page.HomePage
 import com.hakanemik.ortakakil.ui.page.LoginPage
+import com.hakanemik.ortakakil.ui.page.NotificationSettingsPage
 import com.hakanemik.ortakakil.ui.page.ProfilePage
 import com.hakanemik.ortakakil.ui.page.RegisterPage
 import com.hakanemik.ortakakil.ui.page.SplashPage
@@ -181,11 +183,39 @@ class MainActivity : ComponentActivity() {
                     mainActivityViewModel.setTopBar(
                         title = "Profil",
                         leftIcon = R.drawable.arrow_back,
-                        onLeftClick = {}
+                        onLeftClick = {mainActivityViewModel.answerPageBackNavigate(navController)},
+                        rightIcon = R.drawable.logout,
+                        onRightClick = {mainActivityViewModel.logout(navController)}
                     )
                     mainActivityViewModel.hideBottomBar()
                 }
                 ProfilePage(navController,snackbarHostState)
+            }
+            composable(
+                route="notification_settings_page"
+            ){
+                LaunchedEffect(Unit) {
+                    mainActivityViewModel.setTopBar(
+                        title = "Bildirim Ayarları",
+                        leftIcon = R.drawable.arrow_back,
+                        onLeftClick = {mainActivityViewModel.answerPageBackNavigate(navController)}
+                    )
+                    mainActivityViewModel.hideBottomBar()
+                }
+                NotificationSettingsPage()
+            }
+            composable(
+                route="account_info_page"
+            ){
+                LaunchedEffect(Unit) {
+                    mainActivityViewModel.setTopBar(
+                        title = "Hesap Bilgileri",
+                        leftIcon = R.drawable.arrow_back,
+                        onLeftClick = {mainActivityViewModel.answerPageBackNavigate(navController)}
+                    )
+                    mainActivityViewModel.hideBottomBar()
+                }
+                AccountInfoPage(navController)
             }
             composable(route="home_page"){
                 LaunchedEffect(Unit) {

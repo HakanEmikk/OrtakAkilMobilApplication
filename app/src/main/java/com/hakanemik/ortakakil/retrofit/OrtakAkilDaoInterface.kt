@@ -10,10 +10,13 @@ import com.hakanemik.ortakakil.entity.User
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
 
 interface OrtakAkilDaoInterface {
     @POST("/api/Auth/login")
     suspend  fun login(@Body loginRequest: LoginRequest): ApiResponse<LoginResponse>
+    @POST("/api/Auth/google-login")
+    suspend fun googleWithLogin(@Body body: Map<String,String>): ApiResponse<LoginResponse>
     @POST("/api/Auth/register")
     suspend fun register(@Body registerRequest: RegisterRequest): ApiResponse<User>
     @POST("/api/AI/ask")
@@ -22,4 +25,8 @@ interface OrtakAkilDaoInterface {
     suspend fun refresh(@Body body: Map<String,String>):ApiResponse<LoginResponse>
     @GET("/api/User/GetProfile")
     suspend fun loadProfile():ApiResponse<User>
+    @PUT("/api/User/UpdateProfile")
+    suspend fun updateProfile(@Body user: User):ApiResponse<User>
+    @POST("/api/Auth/logout")
+    suspend fun logout(@Body body: Map<String,String>):ApiResponse<Boolean>
 }

@@ -29,6 +29,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,6 +41,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.hakanemik.ortakakil.R
@@ -58,7 +62,6 @@ fun ProfilePage(
 
     val deviceSize = currentDeviceSizeHelper()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -89,7 +92,7 @@ fun ProfilePage(
                     ),
                     shape = CircleShape
                 )
-                .padding(3.dp),
+                .padding(1.dp),
             contentAlignment = Alignment.Center
         ) {
             Image(
@@ -164,7 +167,7 @@ fun ProfilePage(
                 SettingsCard(
                     settingName = "Hesap Bilgileri",
                     leftIcon = R.drawable.person,
-                    onClick = {},
+                    onClick = {navController.navigate("account_info_page")},
                     deviceSize
                 )
             }
@@ -172,7 +175,7 @@ fun ProfilePage(
                 SettingsCard(
                     settingName = "Bildirim Ayarları",
                     leftIcon = R.drawable.notification,
-                    onClick = {},
+                    onClick = {navController.navigate("notification_settings_page")},
                     deviceSize
                 )
             }

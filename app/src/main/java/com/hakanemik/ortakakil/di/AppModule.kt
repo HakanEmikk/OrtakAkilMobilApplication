@@ -1,7 +1,10 @@
 package com.hakanemik.ortakakil.di
 
 import android.content.Context
+import androidx.credentials.CredentialManager
+import com.hakanemik.ortakakil.R
 import com.hakanemik.ortakakil.data.UserStorage
+import com.hakanemik.ortakakil.helper.GoogleAuthHelper
 import com.hakanemik.ortakakil.repo.TokenManager
 import com.hakanemik.ortakakil.retrofit.OrtakAkilDaoInterface
 import com.hakanemik.ortakakil.retrofit.TokenRefreshInterceptor
@@ -21,6 +24,21 @@ import javax.inject.Singleton
 object AppModule {
 
     private const val BASE_URL = "http://10.0.2.2:5000"
+
+    @Provides
+    @Singleton
+    fun provideCredentialManager(@ApplicationContext ctx: Context): CredentialManager =
+        CredentialManager.create(ctx)
+
+    @Provides
+    @Singleton
+    fun provideGoogleAuthHelper(
+        @ApplicationContext context: Context,
+        credentialManager: CredentialManager
+    ):GoogleAuthHelper{
+        val serverClientId = context.getString(R.string.google_server_client_id)
+        return GoogleAuthHelper(context,credentialManager,serverClientId)
+    }
 
     @Provides
     @Singleton

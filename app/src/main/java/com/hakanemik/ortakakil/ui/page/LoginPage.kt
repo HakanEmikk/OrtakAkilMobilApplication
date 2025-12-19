@@ -3,6 +3,7 @@ package com.hakanemik.ortakakil.ui.page
 import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -14,7 +15,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -46,17 +46,15 @@ fun LoginPage(
 ) {
     val viewModel: LoginPageViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val deviceSize = currentDeviceSizeHelper()
-
-        when (deviceSize) {
-            DeviceSize.Compact -> CompactLoginLayout(deviceSize, uiState, viewModel, navController)
-            DeviceSize.Medium -> MediumLoginLayout(deviceSize, uiState, viewModel, navController)
-            DeviceSize.Expanded -> ExpandedLoginLayout(deviceSize, uiState, viewModel, navController)
-        }
-
-        // Handle UI State
-        HandleUIState(uiState.loginState, snackbarHostState, navController)
+    when (val deviceSize = currentDeviceSizeHelper()) {
+        DeviceSize.Compact -> CompactLoginLayout(deviceSize, uiState, viewModel, navController)
+        DeviceSize.Medium -> MediumLoginLayout(deviceSize, uiState, viewModel, navController)
+        DeviceSize.Expanded -> ExpandedLoginLayout(deviceSize, uiState, viewModel, navController)
     }
+
+    // Handle UI State
+    HandleUIState(uiState.loginState, snackbarHostState, navController)
+}
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -206,7 +204,8 @@ fun LoginContent(
         onPasswordChange = viewModel::onPasswordChange,
         onRememberMeChange = viewModel::onRememberMeChange,
         onLogin = viewModel::login,
-        onNavigateToRegister = { navController.navigate("register_page") }
+        onNavigateToRegister = { navController.navigate("register_page") },
+        onGoogleSignIn = viewModel::loginWithGoogle
     )
 
     Spacer(modifier = Modifier.height(40.dp.responsive(40.dp, 50.dp, 40.dp, deviceSize)))
@@ -235,7 +234,8 @@ private fun LoginFormOnly(
         onPasswordChange = viewModel::onPasswordChange,
         onRememberMeChange = viewModel::onRememberMeChange,
         onLogin = viewModel::login,
-        onNavigateToRegister = { navController.navigate("register_page") }
+        onNavigateToRegister = { navController.navigate("register_page") },
+        onGoogleSignIn = viewModel::loginWithGoogle
     )
 }
 
@@ -247,7 +247,8 @@ private fun LoginForm(
     onPasswordChange: (String) -> Unit,
     onRememberMeChange: (Boolean) -> Unit,
     onLogin: () -> Unit,
-    onNavigateToRegister: () -> Unit
+    onNavigateToRegister: () -> Unit,
+    onGoogleSignIn: () -> Unit
 ) {
     val isLoading = uiState.loginState is Resource.Loading
 
@@ -335,6 +336,17 @@ private fun LoginForm(
     )
 
     Spacer(modifier = Modifier.height(17.dp.responsive(17.dp, 20.dp, 24.dp, deviceSize)))
+    Text("VEYA",color = colorResource(id = R.color.text_secondary),
+        fontSize = 14f.responsiveSp(14f, 16f, 18f, deviceSize),fontWeight = FontWeight.Medium)
+    Spacer(modifier = Modifier.height(17.dp.responsive(17.dp, 20.dp, 24.dp, deviceSize)))
+    // Google Sign-In Button
+    GoogleSignInButton(
+        onClick = onGoogleSignIn,
+        isLoading = isLoading,
+        deviceSize = deviceSize
+    )
+
+    Spacer(modifier = Modifier.height(17.dp.responsive(17.dp, 20.dp, 24.dp, deviceSize)))
 
     AuthButton(
         onClick = onNavigateToRegister,
@@ -345,6 +357,58 @@ private fun LoginForm(
     )
 }
 
+@Composable
+private fun GoogleSignInButton(
+    onClick: () -> Unit,
+    isLoading: Boolean,
+    deviceSize: DeviceSize
+) {
+    Button(
+        onClick = onClick,
+        enabled = !isLoading,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(52.dp.responsive(52.dp, 56.dp, 60.dp, deviceSize))
+            .clip(RoundedCornerShape(10.dp)),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = colorResource(id = R.color.surface_light),
+            disabledContainerColor = colorResource(id = R.color.surface_light)
+        ),
+        border = BorderStroke(
+            width = 2.dp,
+            color = colorResource(id = R.color.border_default)
+        ), shape = RoundedCornerShape(14.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.google),
+                contentDescription = "Google Logo",
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = "Google ile Giriş Yap",
+                fontSize = 14f.responsiveSp(14f, 16f, 18f, deviceSize),
+                color = colorResource(id = R.color.text_primary),
+                fontWeight = FontWeight.Medium
+            )
+            if (isLoading) {
+                Spacer(modifier = Modifier.width(12.dp))
+                CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp),
+                    color = colorResource(id = R.color.primary_purple),
+                    strokeWidth = 2.dp
+                )
+            }
+        }
+    }
+}
 
 @Composable
 private fun HandleUIState(
@@ -361,7 +425,7 @@ private fun HandleUIState(
                 }
             }
             is Resource.Error -> {
-                snackbarHostState.showSnackbar(loginState.message ?: "Bir hata oluştu")
+                snackbarHostState.showSnackbar(loginState.message)
             }
             else -> {}
         }

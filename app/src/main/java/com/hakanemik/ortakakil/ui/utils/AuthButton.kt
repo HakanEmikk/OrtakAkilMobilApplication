@@ -1,5 +1,6 @@
 package com.hakanemik.ortakakil.ui.utils
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -35,17 +36,17 @@ fun AuthButton(
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .height(56.dp.responsive(56.dp, 60.dp, 56.dp, deviceSize))
-            .clip(RoundedCornerShape(10.dp))
-            .border(
-                2.dp,
-                color = colorResource(id = borderColor),
-                shape = RoundedCornerShape(10.dp)
-            ),
+            .height(52.dp.responsive(52.dp, 56.dp, 60.dp, deviceSize))
+            .clip(RoundedCornerShape(10.dp)),
         colors = ButtonDefaults.buttonColors(
-            containerColor = colorResource(id = colorRes)
+            containerColor = colorResource(id = colorRes),
+            disabledContainerColor = colorResource(id = R.color.surface_light)
         ),
-        shape = RoundedCornerShape(14.dp)
+        shape = RoundedCornerShape(14.dp),
+        border = BorderStroke(
+            width = 2.dp,
+            color = colorResource(id = borderColor)
+        )
     ) {
         if (isLoading) {
             CircularProgressIndicator(

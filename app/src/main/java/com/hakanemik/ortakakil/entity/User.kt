@@ -12,11 +12,14 @@ data class User(
     @SerializedName("email")
     var email: String,
     @SerializedName("nameSurname")
-    var nameSurname:String,
+    var nameSurname:String? = null,
     @SerializedName("isActive")
-    var isActive: Boolean,
+    var isActive: Boolean? = null,
     @SerializedName("createdDate")
-    var createdDate: String,
+    var createdDate: String? = null,
     @SerializedName("totalDecisionCount")
-    var totalDecisionCount: Int,
-){}
+    var totalDecisionCount: Int? = null,
+    @SerializedName("authProvider")
+    var authProvider: String? = null
+
+)

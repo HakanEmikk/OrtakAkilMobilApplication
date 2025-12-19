@@ -8,6 +8,7 @@ import androidx.navigation.NavController
 import com.hakanemik.ortakakil.entity.BottomBarState
 import com.hakanemik.ortakakil.entity.TopBarState
 import com.hakanemik.ortakakil.helper.TimeUtils
+import com.hakanemik.ortakakil.repo.OrtakAkilDaoRepository
 import com.hakanemik.ortakakil.repo.TokenManager
 import com.hakanemik.ortakakil.repo.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,7 +23,8 @@ import javax.inject.Inject
 @HiltViewModel
 class MainActivityViewModel @Inject constructor(
     private val tokenManager: TokenManager,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val repository: OrtakAkilDaoRepository
 ) : ViewModel() {
 
     private val _startDestination = MutableStateFlow<String?>(null)
@@ -119,9 +121,16 @@ class MainActivityViewModel @Inject constructor(
     fun answerPageBackNavigate(navController: NavController){
         navController.popBackStack()
     }
-   suspend fun logout() {
-        tokenManager.clearTokens()
-        userRepository.logout()
-        _startDestination.value = "login_page"
+    fun logout(navController: NavController) {
+        val refreshToken = tokenManager.getRefreshToken()
+        viewModelScope.launch {
+            repository.logout(refreshToken)
+            userRepository.logout()
+            navController.navigate(route = "login_page"){
+                popUpTo(0){inclusive=true}
+            }
+        }
+
+
     }
 }

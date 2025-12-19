@@ -1,9 +1,12 @@
+import org.gradle.kotlin.dsl.debugImplementation as debugImplementation1
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("com.google.dagger.hilt.android")
     kotlin("kapt")
+    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
@@ -42,7 +45,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -53,25 +55,30 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.hilt.common)
+    implementation(libs.firebase.functions)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
-    debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.ui.test.manifest)
-    implementation("androidx.navigation:navigation-compose:2.9.2")
-    implementation("com.google.code.gson:gson:2.8.6")
-    implementation("androidx.compose.material3:material3-window-size-class:1.1.2")
-    implementation("androidx.compose.runtime:runtime-livedata:1.8.3")
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation("androidx.datastore:datastore-preferences:1.1.1")
-    implementation("androidx.datastore:datastore-preferences-core:1.1.1")
-    implementation("androidx.security:security-crypto:1.1.0-alpha06")
-    implementation("com.google.dagger:hilt-android:2.52")
-    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
-    implementation ("androidx.hilt:hilt-work:1.2.0")
-    implementation("org.json:json:20231013")
-    kapt("com.google.dagger:hilt-compiler:2.52")
+    debugImplementation1(libs.androidx.ui.tooling)
+    debugImplementation1(libs.androidx.ui.test.manifest)
+    debugImplementation1(libs.leakcanary.android)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.gson)
+    implementation(libs.androidx.material3.window.size.class1)
+    implementation(libs.androidx.runtime.livedata)
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.datastore.preferences.core)
+    implementation(libs.androidx.security.crypto)
+    implementation(libs.dagger.hilt.android)
+    implementation(libs.androidx.hilt.navigation.compose)
+    implementation (libs.androidx.hilt.work)
+    implementation(libs.json)
+    implementation (libs.androidx.credentials)
+    implementation (libs.androidx.credentials.play.services.auth)
+    implementation (libs.googleid)
+    kapt(libs.hilt.compiler)
 }

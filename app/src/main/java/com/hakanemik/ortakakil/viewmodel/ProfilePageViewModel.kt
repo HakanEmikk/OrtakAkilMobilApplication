@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -20,44 +22,53 @@ class ProfilePageViewModel @Inject constructor(
     private val userRepository: UserRepository
 ): ViewModel() {
 
-    private  val _uiState = MutableStateFlow(ProfileUiState())
-    val uiState : StateFlow<ProfileUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(ProfileUiState())
+    val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
     init {
         loadProfile()
     }
 
-    fun loadProfile(){
-
+    private fun loadProfile() {
         viewModelScope.launch {
-            val response=repository.loadProfile()
-            when(response){
-                is Resource.Success ->{
-                    _uiState.value = _uiState.value.copy(
+            // 1. Önce backend'den profil verilerini (count vb.) çekiyoruz
+            val response = repository.loadProfile()
+
+            when (response) {
+                is Resource.Success -> {
+                    // Backend verisini güvenle güncelle
+                    _uiState.update { it.copy(
                         totalDecisionCount = response.data.data?.totalDecisionCount.toString(),
                         isLoading = false
-                    )
-                    userRepository.getUserNameFlow().collectLatest { name ->
-                        _uiState.value = _uiState.value.copy(
-                            userName = name ?: "Misafir",
-                            error = null
-                        )
-                    }
-                    userRepository.getUserEmailFlow().collectLatest {
-                        _uiState.value = _uiState.value.copy(
-                            email = it ?: "Misafir",
-                            error = null
-                        )
+                    ) }
+
+                    // 2. Ardından DataStore'daki isim/resim gibi canlı akışları dinlemeye başlıyoruz
+                    combine(
+                        userRepository.getUserNameFlow(),
+                        userRepository.getUserPictureFlow(),
+                        userRepository.getUserEmailFlow()
+                    ) { name, picture, email ->
+                        // Herhangi bir veri değiştiğinde mevcut state'i (update ile) koruyarak güncelle
+                        _uiState.update { currentState ->
+                            currentState.copy(
+                                userName = name ?: "Misafir",
+                                photoUrl = picture ?: "",
+                                email = email ?: "Bilinmiyor",
+                                error = null
+                            )
+                        }
+                    }.collectLatest {
+                        // combine içindeki update işlemi yeterli, burası akışı canlı tutar
                     }
                 }
-                is Resource.Error ->{
-                    _uiState.value = _uiState.value.copy(
+                is Resource.Error -> {
+                    _uiState.update { it.copy(
                         error = response.message ?: "Bir hata oluştu",
                         isLoading = false
-                    )
+                    ) }
                 }
                 else -> {
-
+                    _uiState.update { it.copy(isLoading = true) }
                 }
             }
         }

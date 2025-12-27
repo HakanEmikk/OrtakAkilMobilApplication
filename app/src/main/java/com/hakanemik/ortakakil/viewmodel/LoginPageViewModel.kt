@@ -8,6 +8,7 @@ import androidx.credentials.exceptions.NoCredentialException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hakanemik.ortakakil.entity.LoginRequest
+import com.hakanemik.ortakakil.entity.LoginResponse
 import com.hakanemik.ortakakil.entity.LoginUiState
 import com.hakanemik.ortakakil.entity.Resource
 import com.hakanemik.ortakakil.helper.GoogleAuthHelper
@@ -19,6 +20,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -34,25 +36,24 @@ class LoginPageViewModel @Inject constructor(
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
     fun onEmailChange(value: String) {
-        _uiState.value = _uiState.value.copy(
+        _uiState.update { it.copy(
             email = value,
             emailError = null
-        )
+        ) }
     }
 
     fun onPasswordChange(value: String) {
-        _uiState.value = _uiState.value.copy(
+        _uiState.update { it.copy(
             password = value,
             passwordError = null
-        )
+        ) }
     }
 
     fun onRememberMeChange(value: Boolean) {
-        _uiState.value = _uiState.value.copy(rememberMe = value)
+        _uiState.update { it.copy(rememberMe = value) }
         viewModelScope.launch {
-            userRepository.saveRememberMe(_uiState.value.rememberMe)
+            userRepository.saveRememberMe(value)
         }
-
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -61,7 +62,6 @@ class LoginPageViewModel @Inject constructor(
         val email = currentState.email.trim()
         val password = currentState.password
 
-        // Validasyon
         var emailError: String? = null
         var passwordError: String? = null
 
@@ -78,53 +78,24 @@ class LoginPageViewModel @Inject constructor(
         }
 
         if (emailError != null || passwordError != null) {
-            _uiState.value = currentState.copy(
+            _uiState.update { it.copy(
                 emailError = emailError,
                 passwordError = passwordError
-            )
+            ) }
             return
         }
 
-        // API çağrısı
         viewModelScope.launch {
-            _uiState.value = currentState.copy(
-                loginState = Resource.Loading
-            )
+            _uiState.update { it.copy(loginState = Resource.Loading) }
 
             when (val result = repository.login(LoginRequest(email, password))) {
                 is Resource.Success -> {
-                    val user = result.data.data?.user
-                    val token = result.data.data?.accessToken
-                    val refreshToken=result.data.data?.refreshToken
-                    val now = System.currentTimeMillis()
-                    val tokenExp= result.data.data?.tokenExpiry
-                    val refreshExp= result.data.data?.refreshExpiry
-
-                    val accessExpMs = tokenExp?.let { TimeUtils.isoToMillis(it) }
-                        ?: (now + 15*60*1000) // backend "expiresIn" yollamıyorsa fallback
-
-                    val refreshExpMs = refreshExp?.let { TimeUtils.isoToMillis(it) }
-                        ?: (now + 30L*24*60*60*1000)
-
-
-                    // Kullanıcı bilgilerini kaydet
-                    if (user != null && token != null && refreshToken != null) {
-                        tokenManager.saveTokens(token,refreshToken,accessExpMs,refreshExpMs)
-                        userRepository.saveUserInfo(
-                            userId = user.id.toString(),
-                            userName = user.name,
-                            email = user.email
-                        )
-                    }
-
-                    _uiState.value = currentState.copy(
-                        loginState = result
-                    )
+                    val data = result.data.data
+                    handleSuccessfulLogin(data)
+                    _uiState.update { it.copy(loginState = result) }
                 }
                 is Resource.Error -> {
-                    _uiState.value = currentState.copy(
-                        loginState = result
-                    )
+                    _uiState.update { it.copy(loginState = result) }
                 }
                 else -> {}
             }
@@ -134,64 +105,63 @@ class LoginPageViewModel @Inject constructor(
     fun logout() {
         viewModelScope.launch {
             userRepository.logout()
-            _uiState.value = LoginUiState() // Reset state
+            _uiState.update { LoginUiState() }
         }
     }
+
     @RequiresApi(Build.VERSION_CODES.O)
     fun loginWithGoogle() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(loginState = Resource.Loading)
+            _uiState.update { it.copy(loginState = Resource.Loading) }
 
             try {
-                val idToken = googleAuthHelper.getIdToken()   // <-- hata burada patlıyor
+                val idToken = googleAuthHelper.getIdToken()
                 when (val result = repository.googleWithLogin(idToken)) {
                     is Resource.Success -> {
-                        val user = result.data.data?.user
-                        val token = result.data.data?.accessToken
-                        val refreshToken=result.data.data?.refreshToken
-                        val now = System.currentTimeMillis()
-                        val tokenExp= result.data.data?.tokenExpiry
-                        val refreshExp= result.data.data?.refreshExpiry
-
-                        val accessExpMs = tokenExp?.let { TimeUtils.isoToMillis(it) }
-                            ?: (now + 15*60*1000) // backend "expiresIn" yollamıyorsa fallback
-
-                        val refreshExpMs = refreshExp?.let { TimeUtils.isoToMillis(it) }
-                            ?: (now + 30L*24*60*60*1000)
-
-
-                        // Kullanıcı bilgilerini kaydet
-                        if (user != null && token != null && refreshToken != null) {
-                            tokenManager.saveTokens(token,refreshToken,accessExpMs,refreshExpMs)
-                            userRepository.saveUserInfo(
-                                userId = user.id.toString(),
-                                userName = user.name,
-                                email = user.email
-                            )
-                        }
-
-                        _uiState.value = _uiState.value.copy(
-                            loginState = result
-                        )
+                        val data = result.data.data
+                        handleSuccessfulLogin(data)
+                        _uiState.update { it.copy(loginState = result) }
                     }
                     is Resource.Error -> {
-                        _uiState.value = _uiState.value.copy(loginState = result)
+                        _uiState.update { it.copy(loginState = result) }
                     }
                     else -> {}
                 }
             } catch (e: NoCredentialException) {
-                _uiState.value = _uiState.value.copy(
-                    loginState = Resource.Error("Bu cihazda Google hesabı yok. Ayarlardan Google hesabı ekleyip tekrar deneyin.")
-                )
+                _uiState.update { it.copy(
+                    loginState = Resource.Error("Bu cihazda Google hesabı yok.")
+                ) }
             } catch (e: GetCredentialException) {
-                _uiState.value = _uiState.value.copy(
+                _uiState.update { it.copy(
                     loginState = Resource.Error(e.message ?: "Google giriş iptal edildi.")
-                )
+                ) }
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
+                _uiState.update { it.copy(
                     loginState = Resource.Error(e.message ?: "Google giriş başarısız.")
-                )
+                ) }
             }
+        }
+    }
+
+    // Tekrar eden login mantığını temizlemek için yardımcı fonksiyon
+    @RequiresApi(Build.VERSION_CODES.O)
+    private suspend fun handleSuccessfulLogin(data: LoginResponse?) {
+        val user = data?.user
+        val token = data?.accessToken
+        val refreshToken = data?.refreshToken
+        val now = System.currentTimeMillis()
+
+        val accessExpMs = data?.tokenExpiry?.let { TimeUtils.isoToMillis(it) } ?: (now + 15 * 60 * 1000)
+        val refreshExpMs = data?.refreshExpiry?.let { TimeUtils.isoToMillis(it) } ?: (now + 30L * 24 * 60 * 60 * 1000)
+
+        if (user != null && token != null && refreshToken != null) {
+            tokenManager.saveTokens(token, refreshToken, accessExpMs, refreshExpMs)
+            userRepository.saveUserInfo(
+                userId = user.id.toString(),
+                userName = user.name,
+                email = user.email,
+                pictureUrl = user.pictureUrl
+            )
         }
     }
 }

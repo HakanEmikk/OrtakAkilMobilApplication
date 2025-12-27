@@ -11,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -22,19 +23,29 @@ class AnswerPageViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(AnswerUiState())
     val uiState : StateFlow<AnswerUiState> = _uiState.asStateFlow()
 
-    fun loadAnswer(question: String,category: String){
-        _uiState.value = _uiState.value.copy(isLoading = true, question = question)
-        viewModelScope.launch(Dispatchers.IO) {
+    fun loadAnswer(question: String, category: String) {
+        // İlk yükleme durumunu ayarla
+        _uiState.update { it.copy(isLoading = true, question = question, category = category) }
 
-            val response = repository.aiRequest(AiRequest(question =question,category=category))
-            when(response){
-                is Resource.Success ->{
-                    _uiState.value = _uiState.value.copy(answer = response.data.data?.answer!!, isLoading = false)
+        viewModelScope.launch(Dispatchers.IO) {
+            val response = repository.aiRequest(AiRequest(question = question, category = category))
+
+            when(response) {
+                is Resource.Success -> {
+                    _uiState.update { it.copy(
+                        answer = response.data.data?.answer ?: "Cevap bulunamadı",
+                        isLoading = false
+                    ) }
                 }
                 is Resource.Error -> {
-                    _uiState.value = _uiState.value.copy(answer = "Bir hata oluştu. Lütfen tekrar deneyiniz", isLoading = false)
+                    _uiState.update { it.copy(
+                        answer = "Bir hata oluştu. Lütfen tekrar deneyiniz",
+                        isLoading = false
+                    ) }
                 }
-                else -> {}
+                else -> {
+                    _uiState.update { it.copy(isLoading = false) }
+                }
             }
         }
     }

@@ -1,10 +1,12 @@
-@file:Suppress("UNUSED_EXPRESSION")
-
 package com.hakanemik.ortakakil.ui.page
 
+import android.net.Uri
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,41 +28,36 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusEvent
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.hakanemik.ortakakil.R
 import com.hakanemik.ortakakil.helper.DeviceSize
+import com.hakanemik.ortakakil.helper.FileHelper
 import com.hakanemik.ortakakil.helper.currentDeviceSizeHelper
-import com.hakanemik.ortakakil.helper.responsive
 import com.hakanemik.ortakakil.helper.responsiveSp
+import com.hakanemik.ortakakil.ui.utils.ProfileOptionSheet
 import com.hakanemik.ortakakil.viewmodel.AccountInfoPageViewModel
 
 @Composable
@@ -71,6 +68,31 @@ fun AccountInfoPage(
     val deviceSize = currentDeviceSizeHelper()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val focusManager = LocalFocusManager.current
+    val context = LocalContext.current
+    var showSheet by remember { mutableStateOf(false) }
+    var tempUri by remember { mutableStateOf<Uri?>(null) }
+
+
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) {uri -> viewModel.onImageSelected(uri) }
+
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success -> if (success) viewModel.onImageSelected(tempUri)}
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            val uri = FileHelper.createImageUri(context)
+            tempUri = uri
+            cameraLauncher.launch(uri)
+        } else {
+            Toast.makeText(context, "Kamera izni reddedildi.", Toast.LENGTH_SHORT).show()
+        }
+    }
+    val imageSource = uiState.photoUri ?: uiState.photoUrl.takeIf { it?.isNotEmpty() ?: false  } ?: R.drawable.ortak_akil_logo
 
     Box(modifier = Modifier
         .fillMaxSize()
@@ -113,30 +135,31 @@ fun AccountInfoPage(
                     .padding(1.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Image(
-                    contentDescription = "Profile Image",
-                    painter = painterResource(id = R.drawable.ortak_akil_logo),
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(CircleShape)
-                )
-                IconButton(
-                    onClick = {
-
-                    },
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .size(38.dp)
-                        .background(Color.White, CircleShape)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.pencil),
-                        contentDescription = "Edit Image",
-                        tint = Color.Black,
-                        modifier = Modifier.size(22.dp)
+                    AsyncImage(
+                        model = imageSource,
+                        contentDescription = "Profile",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape)
                     )
-                }
+                    IconButton(
+                        onClick = {
+                            showSheet= true
+                        },
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .size(38.dp)
+                            .background(Color.White, CircleShape)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.pencil),
+                            contentDescription = "Edit Image",
+                            tint = Color.Black,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+
             }
 
             Spacer(modifier = Modifier.height(40.dp))
@@ -191,13 +214,24 @@ fun AccountInfoPage(
                 shape = RoundedCornerShape(14.dp)
             ) {
                 Text(
-                    "Hesabı Sil",
+                    "Kaydet",
                     color = colorResource(id = R.color.text_primary),
                     fontSize = 16f.responsiveSp(16f, 18f, 20f, deviceSize),
                     fontWeight = FontWeight.SemiBold
                 )
             }
         }
+    }
+    if (showSheet){
+        ProfileOptionSheet(
+            onDismiss = { showSheet = false },
+            onCameraClick = {
+                permissionLauncher.launch(android.Manifest.permission.CAMERA)
+            },
+            onGalleryClick = {
+                photoPickerLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+            }
+        )
     }
 }
 

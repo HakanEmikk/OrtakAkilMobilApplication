@@ -2,6 +2,7 @@ package com.hakanemik.ortakakil.di
 
 import android.content.Context
 import androidx.credentials.CredentialManager
+import com.google.firebase.storage.FirebaseStorage
 import com.hakanemik.ortakakil.R
 import com.hakanemik.ortakakil.data.UserStorage
 import com.hakanemik.ortakakil.helper.GoogleAuthHelper
@@ -24,6 +25,10 @@ import javax.inject.Singleton
 object AppModule {
 
     private const val BASE_URL = "http://10.0.2.2:5000"
+
+    @Provides
+    @Singleton
+    fun provideFirebaseStorage(): FirebaseStorage = FirebaseStorage.getInstance()
 
     @Provides
     @Singleton

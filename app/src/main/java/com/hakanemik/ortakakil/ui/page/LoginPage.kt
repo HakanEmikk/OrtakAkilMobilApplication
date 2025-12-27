@@ -42,7 +42,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun LoginPage(
     navController: NavController,
-    snackbarHostState: SnackbarHostState
+    onShowSnackbar: (String) -> Unit
 ) {
     val viewModel: LoginPageViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -53,7 +53,7 @@ fun LoginPage(
     }
 
     // Handle UI State
-    HandleUIState(uiState.loginState, snackbarHostState, navController)
+    HandleUIState(uiState.loginState, navController, onShowSnackbar)
 }
 
 
@@ -413,19 +413,19 @@ private fun GoogleSignInButton(
 @Composable
 private fun HandleUIState(
     loginState: Resource<*>?,
-    snackbarHostState: SnackbarHostState,
-    navController: NavController
+    navController: NavController,
+    onShowSnackbar: (String) -> Unit
 ) {
     LaunchedEffect(loginState) {
         when (loginState) {
             is Resource.Success -> {
-                launch { snackbarHostState.showSnackbar("Giriş başarılı") }
+                onShowSnackbar("Giriş başarılı")
                 navController.navigate("home_page") {
                     popUpTo("login_page") { inclusive = true }
                 }
             }
             is Resource.Error -> {
-                snackbarHostState.showSnackbar(loginState.message)
+                onShowSnackbar(loginState.message ?: "Hata")
             }
             else -> {}
         }

@@ -20,6 +20,7 @@ data class User(
     @SerializedName("totalDecisionCount")
     var totalDecisionCount: Int? = null,
     @SerializedName("authProvider")
-    var authProvider: String? = null
-
+    var authProvider: String? = null,
+    @SerializedName("pictureUrl")
+    var pictureUrl: String? = null,
 )

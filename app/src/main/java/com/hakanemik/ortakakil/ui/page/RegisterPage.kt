@@ -16,9 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -27,7 +24,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -52,7 +48,10 @@ import com.hakanemik.ortakakil.viewmodel.RegisterPageViewModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun RegisterPage(navController: NavController, snackbarHostState: SnackbarHostState) {
+fun RegisterPage(
+    navController: NavController,
+    onShowSnackbar: (String) -> Unit
+) {
     val viewModel: RegisterPageViewModel =  hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val deviceSize = currentDeviceSizeHelper()
@@ -63,9 +62,13 @@ fun RegisterPage(navController: NavController, snackbarHostState: SnackbarHostSt
             DeviceSize.Expanded -> ExpandedRegisterLayout(deviceSize,uiState, viewModel, navController)
         }
 
+    HandleUIState(uiState.registerState, navController, onShowSnackbar){viewModel.clearUiState()}
 
-        HandleUIState(uiState.registerState, snackbarHostState, navController) { viewModel.clearUiState() }
-    }
+}
+
+
+
+
 
 @Composable
 private fun CompactRegisterLayout(
@@ -394,15 +397,15 @@ private fun RegisterForm(
 @Composable
 private fun HandleUIState(
     uiState: Resource<*>?,
-    snackbarHostState: SnackbarHostState,
     navController: NavController,
+    onShowSnackbar: (String) -> Unit,
     onConsumed: () -> Unit
 ) {
 // Tekrarlı tetiklenmeyi önlemek için uiState değişimine bağla
     LaunchedEffect(uiState) {
         when (uiState) {
             is Resource.Success -> {
-                snackbarHostState.showSnackbar("Kayıt Başarılı")
+                onShowSnackbar("Kayıt Başarılı")
                 onConsumed()
                 navController.navigate("login_page") {
                     popUpTo("register_page") { inclusive = true }
@@ -410,7 +413,7 @@ private fun HandleUIState(
             }
             is Resource.Error -> {
                 val errorMessage = uiState.message ?: "Bir hata oluştu"
-                snackbarHostState.showSnackbar(errorMessage)
+                onShowSnackbar(errorMessage)
                 onConsumed()
             }
             else -> Unit

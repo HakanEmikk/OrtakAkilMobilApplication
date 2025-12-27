@@ -4,18 +4,21 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavController
 import com.hakanemik.ortakakil.entity.BottomBarState
 import com.hakanemik.ortakakil.entity.TopBarState
 import com.hakanemik.ortakakil.helper.TimeUtils
 import com.hakanemik.ortakakil.repo.OrtakAkilDaoRepository
 import com.hakanemik.ortakakil.repo.TokenManager
 import com.hakanemik.ortakakil.repo.UserRepository
+import com.hakanemik.ortakakil.ui.navigation.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -27,6 +30,17 @@ class MainActivityViewModel @Inject constructor(
     private val repository: OrtakAkilDaoRepository
 ) : ViewModel() {
 
+    // One-shot UI Events (Navigation + Snackbar)
+    sealed interface UiEffect {
+        data class NavigateTo(val route: String, val popUpToRoute: String? = null, val inclusive: Boolean = false) : UiEffect
+        data object GoBack : UiEffect
+        data class ShowSnackbar(val message: String) : UiEffect
+    }
+
+    private val _uiEvent = Channel<UiEffect>()
+    val uiEvent = _uiEvent.receiveAsFlow()
+
+
     private val _startDestination = MutableStateFlow<String?>(null)
     val startDestination: StateFlow<String?> = _startDestination.asStateFlow()
 
@@ -35,51 +49,52 @@ class MainActivityViewModel @Inject constructor(
 
     private val _bottomBarState = MutableStateFlow(BottomBarState())
     val bottomBarState: StateFlow<BottomBarState> = _bottomBarState.asStateFlow()
+
     init {
         checkInitialNavigation()
     }
 
-
     private fun checkInitialNavigation() {
         viewModelScope.launch {
-
             delay(2000L)
 
-            val accessToken = tokenManager.getToken()
             val refreshToken = tokenManager.getRefreshToken()
             val rememberMe = userRepository.getRememberMe()
             val userId = userRepository.getUserId()
 
+            // Güvenli kontrol: Login'e yönlendir
             if (!rememberMe || userId == null || refreshToken == null) {
-                _startDestination.value = "login_page"; return@launch
+                _startDestination.update { Screen.Login.route }
+                return@launch
             }
 
             if (tokenManager.isRefreshExpired()) {
-                _startDestination.value = "login_page"; return@launch
+                _startDestination.update { Screen.Login.route }
+                return@launch
             }
 
             if (!tokenManager.isAccessExpired()) {
-                _startDestination.value = "home_page"; return@launch
+                _startDestination.update { Screen.Home.route }
+                return@launch
             }
 
             try {
-                val ref = tokenManager.getRefreshToken()!!
-                val res = userRepository.refreshWithRefreshToken(ref) // authApi
+                val res = userRepository.refreshWithRefreshToken(refreshToken)
                 res.data?.let { d ->
-                    val accessExp = d.tokenExpiry
-                    val refreshExp = d.refreshExpiry
-                    val accessExpMs =TimeUtils.isoToMillis(accessExp)
-                    val refreshExpMs = TimeUtils.isoToMillis(refreshExp)
-                    tokenManager.saveTokens(d.accessToken, d.refreshToken, accessExpMs , refreshExpMs)
-                    _startDestination.value = "home_page"; return@launch
-                }
-                _startDestination.value = "login_page"
-            }catch (_: Exception){
-                _startDestination.value = "login_page"
-            }
+                    val accessExpMs = TimeUtils.isoToMillis(d.tokenExpiry)
+                    val refreshExpMs = TimeUtils.isoToMillis(d.refreshExpiry)
+                    tokenManager.saveTokens(d.accessToken, d.refreshToken, accessExpMs, refreshExpMs)
 
+                    _startDestination.update { Screen.Home.route }
+                    return@launch
+                }
+                _startDestination.update { Screen.Login.route }
+            } catch (_: Exception) {
+                _startDestination.update { Screen.Login.route }
+            }
         }
     }
+
     fun setTopBar(
         title: String,
         leftIcon: Int? = null,
@@ -88,49 +103,66 @@ class MainActivityViewModel @Inject constructor(
         onRightClick: () -> Unit = {},
         isVisible: Boolean = true
     ) {
-        _topBarState.value = TopBarState(
-            title = title,
-            leftIcon = leftIcon,
-            rightIcon = rightIcon,
-            onLeftIconClick = onLeftClick,
-            onRightIconClick = onRightClick,
-            isVisible = isVisible
-        )
+        // Yeni bir state nesnesi oluşturmak burada mantıklıdır çünkü tüm barı baştan kuruyoruz
+        _topBarState.update {
+            TopBarState(
+                title = title,
+                leftIcon = leftIcon,
+                rightIcon = rightIcon,
+                onLeftIconClick = onLeftClick,
+                onRightIconClick = onRightClick,
+                isVisible = isVisible
+            )
+        }
     }
 
     fun setBottomBar(isVisible: Boolean) {
-        _bottomBarState.value = BottomBarState(isVisible = isVisible)
+        _bottomBarState.update { it.copy(isVisible = isVisible) }
     }
 
     fun hideTopBar() {
-        _topBarState.value = _topBarState.value.copy(isVisible = false)
+        _topBarState.update { it.copy(isVisible = false) }
     }
 
     fun showTopBar() {
-        _topBarState.value = _topBarState.value.copy(isVisible = true)
+        _topBarState.update { it.copy(isVisible = true) }
     }
 
     fun hideBottomBar() {
-        _bottomBarState.value = BottomBarState(isVisible = false)
+        _bottomBarState.update { it.copy(isVisible = false) }
     }
 
     fun showBottomBar() {
-        _bottomBarState.value = BottomBarState(isVisible = true)
+        _bottomBarState.update { it.copy(isVisible = true) }
     }
 
-    fun answerPageBackNavigate(navController: NavController){
-        navController.popBackStack()
+    fun answerPageBackNavigate() {
+        viewModelScope.launch {
+            _uiEvent.send(UiEffect.GoBack)
+        }
     }
-    fun logout(navController: NavController) {
+
+    fun logout() {
         val refreshToken = tokenManager.getRefreshToken()
         viewModelScope.launch {
-            repository.logout(refreshToken)
-            userRepository.logout()
-            navController.navigate(route = "login_page"){
-                popUpTo(0){inclusive=true}
+            try {
+                repository.logout(refreshToken)
+            } finally {
+                userRepository.logout()
+                _uiEvent.send(
+                    UiEffect.NavigateTo(
+                        route = Screen.Login.route,
+                        popUpToRoute = "0", // 0 usually means pop everything in Compose Nav
+                        inclusive = true
+                    )
+                )
             }
         }
+    }
 
-
+    fun showSnackbar(message: String) {
+        viewModelScope.launch {
+            _uiEvent.send(UiEffect.ShowSnackbar(message))
+        }
     }
 }

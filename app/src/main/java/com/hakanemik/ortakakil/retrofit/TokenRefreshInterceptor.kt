@@ -23,7 +23,7 @@ class TokenRefreshInterceptor @Inject constructor(
         val original = chain.request()
 
         // Refresh endpoint’i ise dokunma (sonsuz döngüyü kır)
-        if (original.url().encodedPath().endsWith("/api/Auth/refresh-token")) {
+        if (original.url.encodedPath.endsWith("/api/Auth/refresh-token")) {
             return chain.proceed(original)
         }
         if (tokenManager.shouldProactiveRefresh(60_000L)) {
@@ -67,7 +67,7 @@ class TokenRefreshInterceptor @Inject constructor(
         else original
 
         var resp = chain.proceed(req)
-        if (resp.code() != 401) return resp
+        if (resp.code != 401) return resp
 
         resp.close()
 

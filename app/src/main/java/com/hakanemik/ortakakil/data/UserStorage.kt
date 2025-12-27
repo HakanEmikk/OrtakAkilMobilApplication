@@ -21,6 +21,7 @@ object UserPrefs {
     val USER_NAME = stringPreferencesKey("user_name")
     val USER_EMAIL = stringPreferencesKey("user_email")
     val REMEMBER_ME = booleanPreferencesKey("remember_me")
+    val USER_PICTURE = stringPreferencesKey("user_picture")
 }
 
 @Singleton
@@ -64,11 +65,12 @@ class UserStorage @Inject constructor(
     fun isExpired(expAtMs: Long, skewMs: Long = 60_000L): Boolean =
         expAtMs <= 0L || expAtMs <= System.currentTimeMillis() + skewMs
     // USER INFO WITH FLOW
-    suspend fun saveUserInfo(userId: String, userName: String, email: String? = null,rememberMe: Boolean = false) {
+    suspend fun saveUserInfo(userId: String, userName: String, email: String? = null,pictureUrl: String? = null) {
         context.dataStore.edit { prefs ->
             prefs[UserPrefs.USER_ID] = userId
             prefs[UserPrefs.USER_NAME] = userName
             email?.let { prefs[UserPrefs.USER_EMAIL] = it }
+            pictureUrl?.let { prefs[UserPrefs.USER_PICTURE] = it }
         }
     }
     suspend fun  saveRememberMe(rememberMe: Boolean ){
@@ -86,10 +88,12 @@ class UserStorage @Inject constructor(
         context.dataStore.data.map { it[UserPrefs.USER_EMAIL] }
     fun getRememberMeFlow() : Flow<Boolean> =
         context.dataStore.data.map { it[UserPrefs.REMEMBER_ME] ?: false }
-
+    fun getUserPictureFlow():Flow<String?> =
+        context.dataStore.data.map { it[UserPrefs.USER_PICTURE] }
     suspend fun getUserId(): String? = getUserIdFlow().first()
     suspend fun getUserName(): String? = getUserNameFlow().first()
     suspend fun getUserEmail(): String? = getUserEmailFlow().first()
+    suspend fun getUserPicture(): String? = getUserPictureFlow().first()
     suspend fun getRememberMe(): Boolean =getRememberMeFlow().first()
 
     suspend fun clearAllData() {

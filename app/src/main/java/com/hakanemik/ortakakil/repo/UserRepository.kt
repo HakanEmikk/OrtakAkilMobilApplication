@@ -19,6 +19,7 @@ class UserRepository @Inject constructor(
     fun getUserNameFlow(): Flow<String?> = userStorage.getUserNameFlow()
     fun getUserIdFlow(): Flow<String?> = userStorage.getUserIdFlow()
     fun getUserEmailFlow(): Flow<String?> = userStorage.getUserEmailFlow()
+    fun getUserPictureFlow():Flow<String?> = userStorage.getUserPictureFlow()
 
     // One-time reads
     suspend fun getUserName(): String? = userStorage.getUserName()
@@ -29,8 +30,8 @@ class UserRepository @Inject constructor(
     suspend fun saveRememberMe(rememberMe: Boolean = false){
         userStorage.saveRememberMe(rememberMe)
     }
-    suspend fun saveUserInfo(userId: String, userName: String, email: String? = null) {
-        userStorage.saveUserInfo(userId, userName, email)
+    suspend fun saveUserInfo(userId: String, userName: String, email: String? = null, pictureUrl: String? = null) {
+        userStorage.saveUserInfo(userId, userName, email,pictureUrl)
     }
 
     suspend fun logout() {

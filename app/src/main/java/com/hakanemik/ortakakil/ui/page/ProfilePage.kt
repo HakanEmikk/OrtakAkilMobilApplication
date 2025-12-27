@@ -46,6 +46,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.hakanemik.ortakakil.R
 import com.hakanemik.ortakakil.helper.DeviceSize
 import com.hakanemik.ortakakil.helper.currentDeviceSizeHelper
@@ -62,6 +63,7 @@ fun ProfilePage(
 
     val deviceSize = currentDeviceSizeHelper()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val imageSource=if (uiState.photoUrl == "")  R.drawable.person else uiState.photoUrl
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -95,9 +97,9 @@ fun ProfilePage(
                 .padding(1.dp),
             contentAlignment = Alignment.Center
         ) {
-            Image(
+            AsyncImage(
                 contentDescription = "Profile Image",
-                painter = painterResource(id = R.drawable.ortak_akil_logo),
+                model =  imageSource,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxSize()

@@ -31,7 +31,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -56,6 +55,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.hakanemik.ortakakil.R
 import com.hakanemik.ortakakil.entity.CategoryItem
+import com.hakanemik.ortakakil.entity.Enum.SnackbarType
 import com.hakanemik.ortakakil.entity.HomeUiState
 import com.hakanemik.ortakakil.helper.DeviceSize
 import com.hakanemik.ortakakil.helper.currentDeviceSizeHelper
@@ -67,13 +67,13 @@ import com.hakanemik.ortakakil.viewmodel.HomePageViewModel
 @Composable
 fun HomePage(
     navController: NavController,
-    snackbarHostState: SnackbarHostState,
+    onShowSnackbar: (String, SnackbarType) -> Unit,
     viewModel: HomePageViewModel = hiltViewModel()
 ) {
     val deviceSize = currentDeviceSizeHelper()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-        Box() {
+        Box {
 
             when (deviceSize) {
                 DeviceSize.Compact -> CompactLayout(deviceSize, uiState, viewModel, navController)
@@ -119,42 +119,16 @@ fun CompactLayout(
                     )
                 )
             )
-            .padding(horizontal = 24.dp)
+            .padding(horizontal = 24.dp,)
             .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        Spacer(modifier = Modifier.height(20.dp.responsive(20.dp, 25.dp, 15.dp, deviceSize)))
-
-
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(vertical = 8.dp)
-        ) {
-            Text(
-                text = "Merhaba",
-                color = colorResource(id = R.color.text_secondary),
-                fontSize = 16f.responsiveSp(16f, 18f, 20f, deviceSize),
-                fontWeight = FontWeight.Normal
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = uiState.userName.uppercase(),
-                color = colorResource(id = R.color.text_primary),
-                fontSize = 28f.responsiveSp(28f, 32f, 36f, deviceSize),
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .graphicsLayer {
-                        shadowElevation = 8f
-                    }
-            )
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
 
         Text(
             text = "Bugün hangi konuda karar vermekte zorlanıyorsun?",
-            color = colorResource(id = R.color.text_secondary),
-            fontSize = 15f.responsiveSp(15f, 17f, 19f, deviceSize),
+            color = colorResource(id = R.color.text_primary),
+            fontSize = 15f.responsiveSp(20f, 22f, 24f, deviceSize),
             maxLines = 2,
             textAlign = TextAlign.Center,
             lineHeight = 20.sp
@@ -404,7 +378,7 @@ fun ModernCategoryButton(
                         colorResource(id = R.color.primary_purple)
                     else
                         colorResource(id = R.color.text_secondary),
-                    modifier = Modifier.size(18.dp.responsive(18.dp, 22.dp, 18.dp, deviceSize))
+                    modifier = Modifier.size(28.dp.responsive(28.dp, 30.dp, 28.dp, deviceSize))
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
@@ -469,12 +443,12 @@ fun ModernQuestionCard(
                 modifier = Modifier.weight(1f)
             )
 
-            Icon(
-                painter = painterResource(id = R.drawable.settings),
-                contentDescription = "arrow",
-                tint = colorResource(id = R.color.text_muted),
-                modifier = Modifier.size(16.dp)
-            )
+//            Icon(
+//                painter = painterResource(id = R.drawable.settings),
+//                contentDescription = "arrow",
+//                tint = colorResource(id = R.color.text_muted),
+//                modifier = Modifier.size(16.dp)
+//            )
         }
     }
 }

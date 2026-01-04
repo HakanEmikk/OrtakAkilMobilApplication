@@ -102,13 +102,6 @@ class LoginPageViewModel @Inject constructor(
         }
     }
 
-    fun logout() {
-        viewModelScope.launch {
-            userRepository.logout()
-            _uiState.update { LoginUiState() }
-        }
-    }
-
     @RequiresApi(Build.VERSION_CODES.O)
     fun loginWithGoogle() {
         viewModelScope.launch {

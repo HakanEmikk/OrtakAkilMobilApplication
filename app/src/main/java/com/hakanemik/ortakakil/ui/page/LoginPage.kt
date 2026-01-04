@@ -26,6 +26,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.hakanemik.ortakakil.R
+import com.hakanemik.ortakakil.entity.Enum.SnackbarType
 import com.hakanemik.ortakakil.entity.LoginUiState
 import com.hakanemik.ortakakil.entity.Resource
 import com.hakanemik.ortakakil.helper.DeviceSize
@@ -35,14 +36,13 @@ import com.hakanemik.ortakakil.helper.responsiveSp
 import com.hakanemik.ortakakil.ui.utils.AuthButton
 import com.hakanemik.ortakakil.ui.utils.AuthTextFields
 import com.hakanemik.ortakakil.viewmodel.LoginPageViewModel
-import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "SuspiciousIndentation")
 @Composable
 fun LoginPage(
     navController: NavController,
-    onShowSnackbar: (String) -> Unit
+    onShowSnackbar: (String,SnackbarType) -> Unit
 ) {
     val viewModel: LoginPageViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -414,18 +414,18 @@ private fun GoogleSignInButton(
 private fun HandleUIState(
     loginState: Resource<*>?,
     navController: NavController,
-    onShowSnackbar: (String) -> Unit
+    onShowSnackbar: (String, SnackbarType) -> Unit
 ) {
     LaunchedEffect(loginState) {
         when (loginState) {
             is Resource.Success -> {
-                onShowSnackbar("Giriş başarılı")
+                onShowSnackbar("Giriş başarılı", SnackbarType.SUCCESS)
                 navController.navigate("home_page") {
                     popUpTo("login_page") { inclusive = true }
                 }
             }
             is Resource.Error -> {
-                onShowSnackbar(loginState.message ?: "Hata")
+                onShowSnackbar(loginState.message, SnackbarType.ERROR)
             }
             else -> {}
         }

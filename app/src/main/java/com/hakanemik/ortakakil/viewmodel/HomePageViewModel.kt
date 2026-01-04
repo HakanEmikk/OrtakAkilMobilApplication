@@ -3,7 +3,6 @@ package com.hakanemik.ortakakil.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hakanemik.ortakakil.entity.HomeUiState
-import com.hakanemik.ortakakil.repo.OrtakAkilDaoRepository
 import com.hakanemik.ortakakil.repo.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,7 +18,6 @@ import javax.inject.Inject
 @HiltViewModel
 class HomePageViewModel @Inject constructor(
     private val userRepository: UserRepository,
-    private val repository: OrtakAkilDaoRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())

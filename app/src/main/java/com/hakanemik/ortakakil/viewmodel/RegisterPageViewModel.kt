@@ -1,10 +1,7 @@
 package com.hakanemik.ortakakil.viewmodel
 
 import android.util.Patterns
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.hakanemik.ortakakil.entity.RegisterRequest
 import com.hakanemik.ortakakil.entity.RegisterUiState
@@ -17,7 +14,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import javax.inject.Named
 
 
 @HiltViewModel

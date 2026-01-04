@@ -34,6 +34,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.hakanemik.ortakakil.R
+import com.hakanemik.ortakakil.entity.Enum.SnackbarType
 import com.hakanemik.ortakakil.entity.RegisterUiState
 import com.hakanemik.ortakakil.entity.Resource
 import com.hakanemik.ortakakil.helper.DeviceSize
@@ -44,13 +45,11 @@ import com.hakanemik.ortakakil.ui.utils.AuthButton
 import com.hakanemik.ortakakil.ui.utils.AuthTextFields
 import com.hakanemik.ortakakil.viewmodel.RegisterPageViewModel
 
-
-
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun RegisterPage(
     navController: NavController,
-    onShowSnackbar: (String) -> Unit
+    onShowSnackbar: (String, SnackbarType) -> Unit
 ) {
     val viewModel: RegisterPageViewModel =  hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -66,8 +65,32 @@ fun RegisterPage(
 
 }
 
-
-
+@Composable
+private fun HandleUIState(
+    uiState: Resource<*>?,
+    navController: NavController,
+    onShowSnackbar: (String, SnackbarType) -> Unit,
+    onConsumed: () -> Unit
+) {
+// Tekrarlı tetiklenmeyi önlemek için uiState değişimine bağla
+    LaunchedEffect(uiState) {
+        when (uiState) {
+            is Resource.Success -> {
+                onShowSnackbar("Kayıt Başarılı", SnackbarType.SUCCESS)
+                onConsumed()
+                navController.navigate("login_page") {
+                    popUpTo("register_page") { inclusive = true }
+                }
+            }
+            is Resource.Error -> {
+                val errorMessage = uiState.message
+                onShowSnackbar(errorMessage,SnackbarType.ERROR)
+                onConsumed()
+            }
+            else -> Unit
+        }
+    }
+}
 
 
 @Composable
@@ -393,30 +416,4 @@ private fun RegisterForm(
         )
     }
 }
-}
-@Composable
-private fun HandleUIState(
-    uiState: Resource<*>?,
-    navController: NavController,
-    onShowSnackbar: (String) -> Unit,
-    onConsumed: () -> Unit
-) {
-// Tekrarlı tetiklenmeyi önlemek için uiState değişimine bağla
-    LaunchedEffect(uiState) {
-        when (uiState) {
-            is Resource.Success -> {
-                onShowSnackbar("Kayıt Başarılı")
-                onConsumed()
-                navController.navigate("login_page") {
-                    popUpTo("register_page") { inclusive = true }
-                }
-            }
-            is Resource.Error -> {
-                val errorMessage = uiState.message ?: "Bir hata oluştu"
-                onShowSnackbar(errorMessage)
-                onConsumed()
-            }
-            else -> Unit
-        }
-    }
 }

@@ -3,14 +3,18 @@ package com.hakanemik.ortakakil.retrofit
 import com.hakanemik.ortakakil.entity.AiRequest
 import com.hakanemik.ortakakil.entity.AiResponse
 import com.hakanemik.ortakakil.entity.ApiResponse
+import com.hakanemik.ortakakil.entity.DiscoveryResponse
 import com.hakanemik.ortakakil.entity.LoginRequest
 import com.hakanemik.ortakakil.entity.LoginResponse
 import com.hakanemik.ortakakil.entity.RegisterRequest
+import com.hakanemik.ortakakil.entity.ShareRequest
 import com.hakanemik.ortakakil.entity.User
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.PUT
+import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface OrtakAkilDaoInterface {
     @POST("/api/Auth/login")
@@ -27,6 +31,12 @@ interface OrtakAkilDaoInterface {
     suspend fun loadProfile():ApiResponse<User>
     @PUT("/api/User/UpdateProfile")
     suspend fun updateProfile(@Body user: User):ApiResponse<User>
+    @POST("/api/Discover/share")
+    suspend fun shareAnswer(@Body shareRequest : ShareRequest) : ApiResponse<Boolean>
+    @GET("/api/Discover/feed")
+    suspend fun loadFeed( @Query("page") page: Int):ApiResponse<List<DiscoveryResponse>>
+    @POST("/api/Discover/like/{id}")
+    suspend fun likeDecision(@Path("id") id: Int): ApiResponse<Boolean>
     @POST("/api/Auth/logout")
     suspend fun logout(@Body body: Map<String,String>):ApiResponse<Boolean>
 }

@@ -4,11 +4,13 @@ import com.google.gson.Gson
 import com.hakanemik.ortakakil.entity.AiRequest
 import com.hakanemik.ortakakil.entity.AiResponse
 import com.hakanemik.ortakakil.entity.ApiResponse
+import com.hakanemik.ortakakil.entity.DiscoveryResponse
 import com.hakanemik.ortakakil.entity.ErrorResponse
 import com.hakanemik.ortakakil.entity.LoginRequest
 import com.hakanemik.ortakakil.entity.LoginResponse
 import com.hakanemik.ortakakil.entity.RegisterRequest
 import com.hakanemik.ortakakil.entity.Resource
+import com.hakanemik.ortakakil.entity.ShareRequest
 import com.hakanemik.ortakakil.entity.User
 import com.hakanemik.ortakakil.retrofit.OrtakAkilDaoInterface
 import javax.inject.Inject
@@ -160,9 +162,32 @@ class OrtakAkilDaoRepository @Inject constructor(
         }
 
     }
+    suspend fun shareAnswer(shareRequest: ShareRequest):Resource<ApiResponse<Boolean>> {
+        return try {
+            val response =ortakAkilDaoInterface.shareAnswer(shareRequest)
+            Resource.Success(response)
+        }catch (e: retrofit2.HttpException){
+            val errorBody=e.response()?.errorBody()?.string()
+            val backendMessage= try {
+                Gson().fromJson(errorBody,ErrorResponse::class.java).message
+            }catch (ex:Exception){
+                null
+            }
+            val userFriendlyMessage = backendMessage?:"Bir hata oluştu, lütfen tekrar deneyin"
+
+            Resource.Error(userFriendlyMessage, e.code())
+        } catch (e: java.net.UnknownHostException) {
+            Resource.Error("İnternet bağlantınızı kontrol edin")
+        }
+        catch (e:Exception){
+            Resource.Error("Beklenmeyen hata: ${e.localizedMessage}")
+        }
+    }
+
     suspend fun logout(refreshToken: String?):Resource<ApiResponse<Boolean>> {
         return try {
-            val response = ortakAkilDaoInterface.logout(mapOf("refreshToken" to refreshToken!!))
+            if(refreshToken == null) return Resource.Error("Oturum bilgisi bulunamadı")
+            val response = ortakAkilDaoInterface.logout(mapOf("refreshToken" to refreshToken))
             Resource.Success(response)
         } catch (e: retrofit2.HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
@@ -176,6 +201,45 @@ class OrtakAkilDaoRepository @Inject constructor(
             Resource.Error(userFriendlyMessage, e.code())
         } catch (e: java.net.UnknownHostException) {
             Resource.Error("İnternet bağlantınızı kontrol edin")
+        } catch (e: Exception) {
+            Resource.Error("Beklenmeyen hata: ${e.localizedMessage}")
+        }
+    }
+
+    suspend fun loadFeed(page: Int): Resource<ApiResponse<List<DiscoveryResponse>>> {
+        return try {
+            val response = ortakAkilDaoInterface.loadFeed(page)
+            Resource.Success(response)
+        } catch (e: retrofit2.HttpException) {
+            val errorBody = e.response()?.errorBody()?.string()
+            val backendMessage = try {
+                Gson().fromJson(errorBody, ErrorResponse::class.java).message
+            } catch (ex: Exception) {
+                null
+            }
+            val userFriendlyMessage = backendMessage ?: "Bir hata oluştu, lütfen tekrar deneyin"
+
+            Resource.Error(userFriendlyMessage, e.code())
+        } catch (e: java.net.UnknownHostException) {
+            Resource.Error("İnternet bağlantınızı kontrol edin")
+        } catch (e: Exception) {
+            Resource.Error("Beklenmeyen hata: ${e.localizedMessage}")
+        }
+    }
+
+    suspend fun likeDecision(id: Int): Resource<ApiResponse<Boolean>> {
+        return try {
+            val response = ortakAkilDaoInterface.likeDecision(id)
+            Resource.Success(response)
+        } catch (e: retrofit2.HttpException) {
+            val errorBody = e.response()?.errorBody()?.string()
+            val backendMessage = try {
+                Gson().fromJson(errorBody, ErrorResponse::class.java).message
+            } catch (ex: Exception) {
+                null
+            }
+            val userFriendlyMessage = backendMessage ?: "Bir hata oluştu"
+            Resource.Error(userFriendlyMessage, e.code())
         } catch (e: Exception) {
             Resource.Error("Beklenmeyen hata: ${e.localizedMessage}")
         }

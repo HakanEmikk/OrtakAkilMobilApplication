@@ -1,11 +1,9 @@
 package com.hakanemik.ortakakil.ui.page
 
 import android.net.Uri
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -39,6 +37,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -53,6 +52,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.hakanemik.ortakakil.R
+import com.hakanemik.ortakakil.entity.Enum.SnackbarType
 import com.hakanemik.ortakakil.helper.DeviceSize
 import com.hakanemik.ortakakil.helper.FileHelper
 import com.hakanemik.ortakakil.helper.currentDeviceSizeHelper
@@ -63,6 +63,7 @@ import com.hakanemik.ortakakil.viewmodel.AccountInfoPageViewModel
 @Composable
 fun AccountInfoPage(
     navController: NavController,
+    onShowSnackbar: (String, SnackbarType) -> Unit,
     viewModel: AccountInfoPageViewModel = hiltViewModel()
 ) {
     val deviceSize = currentDeviceSizeHelper()
@@ -71,6 +72,16 @@ fun AccountInfoPage(
     val context = LocalContext.current
     var showSheet by remember { mutableStateOf(false) }
     var tempUri by remember { mutableStateOf<Uri?>(null) }
+
+    LaunchedEffect(true) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
+                is AccountInfoPageViewModel.UiEffect.ShowSnackbar -> {
+                    onShowSnackbar(event.message, event.type)
+                }
+            }
+        }
+    }
 
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
@@ -89,7 +100,7 @@ fun AccountInfoPage(
             tempUri = uri
             cameraLauncher.launch(uri)
         } else {
-            Toast.makeText(context, "Kamera izni reddedildi.", Toast.LENGTH_SHORT).show()
+            onShowSnackbar("Kamera izni reddedildi.", SnackbarType.WARNING)
         }
     }
     val imageSource = uiState.photoUri ?: uiState.photoUrl.takeIf { it?.isNotEmpty() ?: false  } ?: R.drawable.ortak_akil_logo

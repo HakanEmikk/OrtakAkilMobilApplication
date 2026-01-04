@@ -5,6 +5,7 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hakanemik.ortakakil.entity.BottomBarState
+import com.hakanemik.ortakakil.entity.Enum.SnackbarType
 import com.hakanemik.ortakakil.entity.TopBarState
 import com.hakanemik.ortakakil.helper.TimeUtils
 import com.hakanemik.ortakakil.repo.OrtakAkilDaoRepository
@@ -17,6 +18,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -34,7 +37,7 @@ class MainActivityViewModel @Inject constructor(
     sealed interface UiEffect {
         data class NavigateTo(val route: String, val popUpToRoute: String? = null, val inclusive: Boolean = false) : UiEffect
         data object GoBack : UiEffect
-        data class ShowSnackbar(val message: String) : UiEffect
+        data class ShowSnackbar(val message: String, val type: SnackbarType) : UiEffect
     }
 
     private val _uiEvent = Channel<UiEffect>()
@@ -50,8 +53,13 @@ class MainActivityViewModel @Inject constructor(
     private val _bottomBarState = MutableStateFlow(BottomBarState())
     val bottomBarState: StateFlow<BottomBarState> = _bottomBarState.asStateFlow()
 
+    // Cached user info for TopBar
+    private var cachedUserName: String? = null
+    private var cachedUserPicture: String? = null
+
     init {
         checkInitialNavigation()
+        observeUserData()
     }
 
     private fun checkInitialNavigation() {
@@ -93,10 +101,36 @@ class MainActivityViewModel @Inject constructor(
                 _startDestination.update { Screen.Login.route }
             }
         }
+        }
+
+
+    private fun observeUserData() {
+        viewModelScope.launch {
+            combine(
+                userRepository.getUserNameFlow(),
+                userRepository.getUserPictureFlow()
+            ) { name, pic ->
+                Pair(name, pic)
+            }.collectLatest { (name, pic) ->
+                cachedUserName = name
+                cachedUserPicture = pic
+
+                // If currently showing HomePage TopBar, update it live
+                if (_topBarState.value.isHomePage) {
+                    _topBarState.update {
+                        it.copy(
+                            userName = name ?: "Misafir",
+                            userPictureUrl = pic
+                        )
+                    }
+                }
+            }
+        }
     }
 
     fun setTopBar(
         title: String,
+        isHomePage: Boolean = false,
         leftIcon: Int? = null,
         rightIcon: Int? = null,
         onLeftClick: () -> Unit = {},
@@ -106,12 +140,16 @@ class MainActivityViewModel @Inject constructor(
         // Yeni bir state nesnesi oluşturmak burada mantıklıdır çünkü tüm barı baştan kuruyoruz
         _topBarState.update {
             TopBarState(
+                isHomePage = isHomePage,
                 title = title,
                 leftIcon = leftIcon,
                 rightIcon = rightIcon,
                 onLeftIconClick = onLeftClick,
                 onRightIconClick = onRightClick,
-                isVisible = isVisible
+
+                isVisible = isVisible,
+                userName = if (isHomePage) cachedUserName ?: "Misafir" else null,
+                userPictureUrl = if (isHomePage) cachedUserPicture else null
             )
         }
     }
@@ -148,21 +186,21 @@ class MainActivityViewModel @Inject constructor(
             try {
                 repository.logout(refreshToken)
             } finally {
-                userRepository.logout()
                 _uiEvent.send(
                     UiEffect.NavigateTo(
                         route = Screen.Login.route,
-                        popUpToRoute = "0", // 0 usually means pop everything in Compose Nav
                         inclusive = true
                     )
                 )
+                userRepository.logout()
             }
         }
     }
 
-    fun showSnackbar(message: String) {
+    fun showSnackbar(message: String, type: SnackbarType = SnackbarType.INFO) {
         viewModelScope.launch {
-            _uiEvent.send(UiEffect.ShowSnackbar(message))
+            _uiEvent.send(UiEffect.ShowSnackbar(message, type))
         }
     }
 }
+

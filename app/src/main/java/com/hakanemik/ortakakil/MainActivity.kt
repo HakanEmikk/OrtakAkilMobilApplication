@@ -9,15 +9,21 @@ import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -27,6 +33,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.google.gson.Gson
+import com.hakanemik.ortakakil.entity.Enum.SnackbarType
 import com.hakanemik.ortakakil.entity.NavItem
 import com.hakanemik.ortakakil.helper.currentDeviceSizeHelper
 import com.hakanemik.ortakakil.ui.components.ModernBottomBar
@@ -34,6 +42,8 @@ import com.hakanemik.ortakakil.ui.components.ModernTopBar
 import com.hakanemik.ortakakil.ui.navigation.Screen
 import com.hakanemik.ortakakil.ui.page.AccountInfoPage
 import com.hakanemik.ortakakil.ui.page.AnswerPage
+import com.hakanemik.ortakakil.ui.page.DiscoveryDetailPage
+import com.hakanemik.ortakakil.ui.page.DiscoveryPage
 import com.hakanemik.ortakakil.ui.page.HomePage
 import com.hakanemik.ortakakil.ui.page.LoginPage
 import com.hakanemik.ortakakil.ui.page.NotificationSettingsPage
@@ -100,6 +110,8 @@ fun PageSelect(
 
     val deviceSize = currentDeviceSizeHelper()
 
+    var currentSnackbarType by remember { mutableStateOf(SnackbarType.INFO) }
+
     // Listen to UI Effects
     LaunchedEffect(Unit) {
         mainActivityViewModel.uiEvent.collectLatest { effect ->
@@ -117,6 +129,7 @@ fun PageSelect(
                     navController.popBackStack()
                 }
                 is MainActivityViewModel.UiEffect.ShowSnackbar -> {
+                    currentSnackbarType = effect.type
                     launch {
                         snackbarHostState.showSnackbar(effect.message)
                     }
@@ -127,12 +140,28 @@ fun PageSelect(
 
     val bottomItems = listOf(
         NavItem(Screen.Home.route, "Ana Sayfa", R.drawable.outline_home),
-        NavItem(Screen.History.route, "Geçmiş",  R.drawable.world), // Assuming History page route
+        NavItem(Screen.Discovery.route, "Geçmiş",  R.drawable.world), // Assuming History page route
         NavItem(Screen.NotificationSettings.route, "Ayarlar", R.drawable.notification) // Temporarily pointing to settings for the icon
     )
 
     Scaffold(modifier = Modifier.fillMaxSize(),
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) { data ->
+                val backgroundColor = when (currentSnackbarType) {
+                    SnackbarType.SUCCESS -> colorResource(id = R.color.success)
+                    SnackbarType.ERROR -> colorResource(id = R.color.error)
+                    SnackbarType.WARNING -> colorResource(id = R.color.warning)
+                    SnackbarType.INFO -> colorResource(id = R.color.primary_purple)
+                }
+                // Custom Snackbar
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = backgroundColor,
+                    contentColor = Color.White,
+                    shape = RoundedCornerShape(8.dp)
+                )
+            }
+        },
         topBar = {
             if (topBarState.isVisible) {
                 ModernTopBar(
@@ -161,7 +190,7 @@ fun PageSelect(
 
         NavHost(
             navController = navController,
-            startDestination = startDestination!!,
+            startDestination = startDestination ?: Screen.Login.route,
             modifier = Modifier.padding(
                 top = if (topBarState.isVisible) innerPadding.calculateTopPadding() else 0.dp,
                 bottom = if (bottomBarState.isVisible) innerPadding.calculateBottomPadding() else 0.dp
@@ -174,7 +203,7 @@ fun PageSelect(
                 }
                 LoginPage(
                     navController = navController,
-                    onShowSnackbar = { msg -> mainActivityViewModel.showSnackbar(msg) }
+                    onShowSnackbar =  { msg, type -> mainActivityViewModel.showSnackbar(msg, type) }
                 )
             }
             composable(route = Screen.Register.route) {
@@ -184,7 +213,7 @@ fun PageSelect(
                 }
                 RegisterPage(
                     navController = navController,
-                    onShowSnackbar = { msg -> mainActivityViewModel.showSnackbar(msg) }
+                    onShowSnackbar = { msg, type -> mainActivityViewModel.showSnackbar(msg, type) }
                 )
             }
             composable(route = Screen.Profile.route) {
@@ -198,7 +227,7 @@ fun PageSelect(
                     )
                     mainActivityViewModel.hideBottomBar()
                 }
-                ProfilePage(navController, snackbarHostState)
+                ProfilePage(navController, mainActivityViewModel::showSnackbar)
             }
             composable(route = Screen.NotificationSettings.route) {
                 LaunchedEffect(Unit) {
@@ -220,32 +249,30 @@ fun PageSelect(
                     )
                     mainActivityViewModel.hideBottomBar()
                 }
-                AccountInfoPage(navController)
+                AccountInfoPage(navController, mainActivityViewModel::showSnackbar)
             }
             composable(route = Screen.Home.route) {
                 LaunchedEffect(Unit) {
                     mainActivityViewModel.setTopBar(
-                        title = "Ana Sayfa",
                         leftIcon = R.drawable.person,
-                        rightIcon = R.drawable.settings,
                         onLeftClick = { navController.navigate(Screen.Profile.route) },
-                        onRightClick = { /* Settings */ },
-                        isVisible = true
+                        isVisible = true,
+                        isHomePage = true,
+                        title =""
                     )
                     mainActivityViewModel.showBottomBar()
                 }
-                HomePage(navController, snackbarHostState)
+                HomePage(navController, { msg, type -> mainActivityViewModel.showSnackbar(msg, type)})
             }
-            composable(route = Screen.History.route) {
+            composable(route = Screen.Discovery.route) {
                 LaunchedEffect(Unit) {
                     mainActivityViewModel.setTopBar(
-                        title = "Geçmiş Sorular",
+                        title = "Keşfet",
                         isVisible = true
                     )
                     mainActivityViewModel.showBottomBar()
                 }
-                // NOTE: Originally it was LoginPage here? Please check. Assuming placeholder.
-                LoginPage(navController,onShowSnackbar = { msg -> mainActivityViewModel.showSnackbar(msg)})
+                DiscoveryPage(navController,onShowSnackbar = { msg, type -> mainActivityViewModel.showSnackbar(msg, type)})
             }
             composable(
                 route = Screen.Answer.route,
@@ -260,7 +287,26 @@ fun PageSelect(
                     )
                     mainActivityViewModel.hideBottomBar()
                 }
-                AnswerPage(navController, snackbarHostState, question)
+                AnswerPage(navController, mainActivityViewModel::showSnackbar, question)
+            }
+            composable(
+                route = Screen.DiscoveryDetail.route,
+                arguments = listOf(navArgument("discoveryJson") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val json = backStackEntry.arguments?.getString("discoveryJson")
+                if (json != null) {
+                    val discoveryItem = Gson().fromJson(json, com.hakanemik.ortakakil.entity.DiscoveryResponse::class.java)
+                    
+                    LaunchedEffect(Unit) {
+                        mainActivityViewModel.setTopBar(
+                            title = "Detay",
+                            leftIcon = R.drawable.arrow_back,
+                            onLeftClick = { navController.popBackStack() }
+                        )
+                        mainActivityViewModel.hideBottomBar()
+                    }
+                    DiscoveryDetailPage(navController, discoveryItem)
+                }
             }
         }
     }

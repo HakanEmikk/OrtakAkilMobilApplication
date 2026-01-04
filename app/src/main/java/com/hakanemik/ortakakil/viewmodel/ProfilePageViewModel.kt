@@ -32,9 +32,7 @@ class ProfilePageViewModel @Inject constructor(
     private fun loadProfile() {
         viewModelScope.launch {
             // 1. Önce backend'den profil verilerini (count vb.) çekiyoruz
-            val response = repository.loadProfile()
-
-            when (response) {
+            when (val response = repository.loadProfile()) {
                 is Resource.Success -> {
                     // Backend verisini güvenle güncelle
                     _uiState.update { it.copy(
@@ -63,7 +61,7 @@ class ProfilePageViewModel @Inject constructor(
                 }
                 is Resource.Error -> {
                     _uiState.update { it.copy(
-                        error = response.message ?: "Bir hata oluştu",
+                        error = response.message ,
                         isLoading = false
                     ) }
                 }

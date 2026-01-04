@@ -2,6 +2,7 @@ package com.hakanemik.ortakakil.ui.utils
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.List
@@ -10,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -26,7 +28,7 @@ fun ProfileOptionSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         containerColor = colorResource(id = R.color.surface_dark), // Senin renk teman
-        dragHandle = { BottomSheetDefaults.DragHandle(color = Color.Gray) }
+        dragHandle = { BottomSheetDefaults.DragHandle(color = Color.Gray) },
     ) {
         Column(
             modifier = Modifier
@@ -74,7 +76,7 @@ fun ProfileOptionSheet(
 @Composable
 fun OptionItem(
     title: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     onClick: () -> Unit
 ) {
     Column(
@@ -85,7 +87,7 @@ fun OptionItem(
     ) {
         Surface(
             modifier = Modifier.size(60.dp),
-            shape = androidx.compose.foundation.shape.CircleShape,
+            shape = CircleShape,
             color = colorResource(id = R.color.primary_purple).copy(alpha = 0.2f)
         ) {
             Icon(

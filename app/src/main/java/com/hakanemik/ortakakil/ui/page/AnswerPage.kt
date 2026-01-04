@@ -20,11 +20,13 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -40,8 +42,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.hakanemik.ortakakil.R
+import com.hakanemik.ortakakil.entity.AnswerUiEvent
+import com.hakanemik.ortakakil.entity.Enum.SnackbarType
 import com.hakanemik.ortakakil.helper.currentDeviceSizeHelper
 import com.hakanemik.ortakakil.helper.responsive
+import com.hakanemik.ortakakil.ui.utils.AnswerShareSheet
 import com.hakanemik.ortakakil.viewmodel.AnswerPageViewModel
 
 
@@ -49,15 +54,33 @@ import com.hakanemik.ortakakil.viewmodel.AnswerPageViewModel
 @Composable
 fun AnswerPage(
     navController: NavController,
-    snackbarHostState: SnackbarHostState,
+    onShowSnackbar: (String, SnackbarType) -> Unit,
     question: String?,
     viewModel: AnswerPageViewModel = hiltViewModel()
 ) {
     LaunchedEffect(question) {
-        viewModel.loadAnswer(question!!,"Genel")
+        question?.let {
+            viewModel.loadAnswer(it,"Genel")
+        }
     }
     val deviceSize = currentDeviceSizeHelper()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    var showSheet by remember { mutableStateOf(false) }
+
+    LaunchedEffect(true) {
+        viewModel.uiEvent.collect { event ->
+            when(event) {
+                is AnswerUiEvent.ShareSuccess -> {
+                    showSheet = false
+                    onShowSnackbar("Sorunuz paylaşıldı", SnackbarType.SUCCESS)
+                }
+                is AnswerUiEvent.ShareError -> {
+                    onShowSnackbar("Paylaşılırken bir hata oluştu",SnackbarType.ERROR)
+                }
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -174,7 +197,7 @@ fun AnswerPage(
                 }
             }
         }
-        Column() {
+        Column {
             Canvas(modifier = Modifier
                 .fillMaxWidth()
                 .height(1.dp)
@@ -194,7 +217,7 @@ fun AnswerPage(
             }
             Spacer(modifier = Modifier.height(8.dp.responsive(8.dp, 10.dp, 8.dp, deviceSize)))
             Button(
-                onClick = { navController.popBackStack() },
+                onClick = { showSheet= true },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -224,6 +247,14 @@ fun AnswerPage(
                 color = colorResource(id = R.color.text_primary).copy(alpha = 0.8f)
             )
         }
+    }
+    if (showSheet){
+        AnswerShareSheet(
+            onDismiss = { showSheet = false },
+            value = uiState.shareNote,
+            onValueChange = viewModel::onValueChange,
+            onClick = viewModel::onClick
+        )
     }
 }
 

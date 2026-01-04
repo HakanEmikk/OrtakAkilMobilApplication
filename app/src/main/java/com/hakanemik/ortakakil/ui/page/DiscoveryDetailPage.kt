@@ -1,0 +1,213 @@
+package com.hakanemik.ortakakil.ui.page
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
+import com.hakanemik.ortakakil.R
+import com.hakanemik.ortakakil.entity.DiscoveryResponse
+
+import androidx.compose.foundation.clickable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.hakanemik.ortakakil.viewmodel.DiscoveryDetailViewModel
+
+@Composable
+fun DiscoveryDetailPage(
+    navController: NavHostController,
+    item: DiscoveryResponse,
+    viewModel: DiscoveryDetailViewModel = hiltViewModel()
+) {
+    var isLiked by remember { mutableStateOf(item.isLikedByMe) }
+    var likeCount by remember { mutableIntStateOf(item.likeCount) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(colorResource(id = R.color.background_dark))
+            .verticalScroll(rememberScrollState())
+            .padding(24.dp)
+    ) {
+        // User Info Header
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            AsyncImage(
+                model = item.userPhotoUrl,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(50.dp)
+                    .clip(CircleShape)
+                    .border(2.dp, Color.White, CircleShape),
+                contentScale = ContentScale.Crop
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Column {
+                Text(
+                    text = item.userFullName,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    fontSize = 18.sp
+                )
+                Text(
+                    text = item.createdDate, // Assuming createdDate is displayable or formatted
+                    color = colorResource(id = R.color.text_muted),
+                    fontSize = 14.sp
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // AI Question Section
+        Text(
+            text = "Soru:",
+            color = colorResource(id = R.color.text_muted),
+            fontSize = 14.sp
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = item.title,
+            fontWeight = FontWeight.Bold,
+            color = Color.White,
+            fontSize = 20.sp
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // User's Share Note
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(colorResource(id = R.color.surface_dark), RoundedCornerShape(12.dp))
+                .border(1.dp, colorResource(id = R.color.divider), RoundedCornerShape(12.dp))
+                .padding(16.dp)
+        ) {
+            Column {
+                 Text(
+                    text = "Kullanıcı Yorumu",
+                    color = colorResource(id = R.color.primary_purple),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = item.shareNote,
+                    color = Color.White,
+                    fontSize = 16.sp,
+                    lineHeight = 24.sp
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // AI Answer Section
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(colorResource(id = R.color.purple_overlay_10), RoundedCornerShape(12.dp))
+                .border(1.dp, colorResource(id = R.color.primary_purple), RoundedCornerShape(12.dp))
+                .padding(16.dp)
+        ) {
+             Column {
+                 Text(
+                    text = "Ortak Akıl Cevabı",
+                    color = colorResource(id = R.color.primary_purple),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = item.answer,
+                    color = Color.White,
+                    fontSize = 16.sp,
+                    lineHeight = 24.sp
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Interaction Stats
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceAround
+        ) {
+             Row(verticalAlignment = Alignment.CenterVertically,
+                 modifier = Modifier.clickable {
+                     isLiked = !isLiked
+                     likeCount = if(isLiked) likeCount + 1 else likeCount - 1
+                     viewModel.toggleLike(item.decisionId)
+                 }
+             ) {
+                Icon(
+                    Icons.Default.Favorite,
+                    null,
+                    tint = if(isLiked) Color.Red else Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(text = "$likeCount Beğeni", color = Color.White)
+            }
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Default.Edit,
+                    null,
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(text = "${item.commentCount} Yorum", color = Color.White)
+            }
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Default.Share,
+                    null,
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(text = "Paylaş", color = Color.White)
+            }
+        }
+    }
+}

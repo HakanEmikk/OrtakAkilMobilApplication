@@ -6,6 +6,7 @@ sealed class Screen(val route: String) {
     data object Home : Screen("home_page")
     data object Profile : Screen("profile_page")
     data object History : Screen("history_page")
+    data object Discovery : Screen("discovery_page")
     data object NotificationSettings : Screen("notification_settings_page")
     data object AccountInfo : Screen("account_info_page")
     data object Splash : Screen("splash_page")
@@ -13,5 +14,8 @@ sealed class Screen(val route: String) {
     // Dynamic routes (handling arguments)
     data object Answer : Screen("answer_page/{question}") {
         fun createRoute(question: String) = "answer_page/$question"
+    }
+    data object DiscoveryDetail : Screen("discovery_detail_page/{discoveryJson}") {
+        fun createRoute(discoveryJson: String) = "discovery_detail_page/$discoveryJson"
     }
 }

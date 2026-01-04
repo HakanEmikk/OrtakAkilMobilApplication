@@ -6,5 +6,8 @@ data class TopBarState(
     val rightIcon: Int? = null,
     val onLeftIconClick: () -> Unit = {},
     val onRightIconClick: () -> Unit = {},
-    val isVisible: Boolean = true
+    val isVisible: Boolean = true,
+    val isHomePage: Boolean = false,
+    val userName: String? = null,
+    val userPictureUrl: String? = null
 )

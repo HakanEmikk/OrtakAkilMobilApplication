@@ -6,6 +6,6 @@ data class HomeUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val question: String = "",
-    val selected: String = "",
+    val selected: String = "Genel",
     val isClicked: Boolean = false
 )

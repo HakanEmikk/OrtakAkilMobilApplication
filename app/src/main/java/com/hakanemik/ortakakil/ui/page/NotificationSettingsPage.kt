@@ -1,35 +1,18 @@
 package com.hakanemik.ortakakil.ui.page
 
-import android.graphics.Color
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -44,7 +27,6 @@ data class NotificationItem(
     val title: String,
     val description: String,
     val iconResId: Int,
-    val gradientColors: List<String>,
     var isEnabled: Boolean = true
 )
 
@@ -52,27 +34,25 @@ data class NotificationItem(
 fun NotificationSettingsPage() {
     val deviceSize = currentDeviceSizeHelper()
 
+    // Liste yapısını daha sade ve yönetilebilir hale getirdik
     val notificationItems = remember {
-        mutableListOf(
+        mutableStateListOf(
             NotificationItem(
                 title = "Genel Bildirimler",
-                description = "Tüm bildirim türlerini aç veya kapat",
+                description = "Tüm bildirim türlerini yönet",
                 iconResId = R.drawable.notification,
-                gradientColors = listOf("#22C55E", "#16A34A"),
                 isEnabled = true
             ),
             NotificationItem(
                 title = "Sosyal Bildirimler",
-                description = "Etkileşimler hakkında",
-                iconResId = R.drawable.handshake,
-                gradientColors = listOf("#A855F7", "#7C3AED"),
+                description = "Etkileşimler ve yeni paylaşımlar",
+                iconResId = R.drawable.world, // world ikonunu kullandım sosyal için
                 isEnabled = false
             ),
             NotificationItem(
-                title = "Promosyon ve Haberler",
-                description = "Yenilikler ve teklifler",
-                iconResId = R.drawable.question,
-                gradientColors = listOf("#F97316", "#D97706"),
+                title = "Gelişmeler",
+                description = "Uygulama haberleri ve yenilikler",
+                iconResId = R.drawable.pencil,
                 isEnabled = true
             )
         )
@@ -81,39 +61,39 @@ fun NotificationSettingsPage() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        colorResource(id = R.color.background_dark),
-                        colorResource(id = R.color.background_dark).copy(alpha = 0.95f),
-                        colorResource(id = R.color.surface_dark).copy(alpha = 0.4f)
-                    )
-                )
-            )
+            .background(colorResource(id = R.color.background_dark))
             .padding(horizontal = 24.dp)
-            .padding(top = 20.dp, bottom = 24.dp)
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.Start
     ) {
-        Spacer(modifier = Modifier.height(32.dp.responsive(32.dp, 36.dp, 32.dp, deviceSize)))
+        Spacer(modifier = Modifier.height(32.dp.responsive(32.dp, 40.dp, 36.dp, deviceSize)))
+
+        Text(
+            text = "Bildirim Tercihleri",
+            color = Color.White,
+            fontSize = 24.sp,
+            fontWeight = FontWeight.ExtraBold,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        Text(
+            text = "Hangi durumlarda haberdar olmak istediğini seçebilirsin.",
+            color = colorResource(id = R.color.text_muted),
+            fontSize = 14.sp,
+            modifier = Modifier.padding(bottom = 32.dp)
+        )
 
         // Notification Items
-        notificationItems.forEachIndexed { index, item ->
-            var isEnabled by remember { mutableStateOf(item.isEnabled) }
-
+        notificationItems.forEach { item ->
             NotificationCard(
                 item = item,
-                isEnabled = isEnabled,
-                onToggle = {
-                    isEnabled = it
-                    item.isEnabled = it
+                onToggle = { newValue ->
+                    // ViewModel bağlantısı yapıldığında burası güncellenir
+                    item.isEnabled = newValue
                 },
                 deviceSize = deviceSize
             )
-
-            if (index < notificationItems.size - 1) {
-                Spacer(modifier = Modifier.height(12.dp))
-            }
+            Spacer(modifier = Modifier.height(16.dp))
         }
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -123,95 +103,78 @@ fun NotificationSettingsPage() {
 @Composable
 fun NotificationCard(
     item: NotificationItem,
-    isEnabled: Boolean,
     onToggle: (Boolean) -> Unit,
     deviceSize: DeviceSize
 ) {
+    var isChecked by remember { mutableStateOf(item.isEnabled) }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(100.dp),
-        shape = RoundedCornerShape(16.dp),
+            .height(90.dp),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = colorResource(id = R.color.surface_light)
+            containerColor = colorResource(id = R.color.surface_light).copy(alpha = 0.3f)
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        border = BorderStroke(
+            1.dp,
+            brush = Brush.verticalGradient(listOf(Color.White.copy(0.1f), Color.Transparent))
+        )
     ) {
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+                .padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // Icon Box with Gradient Background
+            // Sol İkon Alanı
             Box(
                 modifier = Modifier
-                    .size(56.dp)
+                    .size(48.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(
-                        brush = Brush.linearGradient(
-                            colors = listOf(
-                                parseColor(item.gradientColors[0]),
-                                parseColor(item.gradientColors[1])
-                            )
-                        )
-                    ),
+                    .background(colorResource(id = R.color.primary_purple).copy(alpha = 0.1f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     painter = painterResource(id = item.iconResId),
-                    contentDescription = item.title,
-                    tint = colorResource(id = R.color.text_primary),
-                    modifier = Modifier.size(28.dp)
+                    contentDescription = null,
+                    tint = colorResource(id = R.color.primary_purple),
+                    modifier = Modifier.size(24.dp)
                 )
             }
 
-            Spacer(modifier = Modifier.size(16.dp))
+            Spacer(modifier = Modifier.width(16.dp))
 
-            // Text Content
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxSize(),
-                verticalArrangement = Arrangement.Center
-            ) {
+            // Metin İçeriği
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = item.title,
-                    color = colorResource(id = R.color.text_primary),
+                    color = Color.White,
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.Bold
                 )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
                 Text(
                     text = item.description,
-                    color = colorResource(id = R.color.text_secondary),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Normal
+                    color = colorResource(id = R.color.text_muted),
+                    fontSize = 12.sp
                 )
             }
 
-            Spacer(modifier = Modifier.size(12.dp))
-
-            // Toggle Switch
+            // Switch (Modernize edilmiş renkler)
             Switch(
-                checked = isEnabled,
-                onCheckedChange = onToggle,
-                modifier = Modifier.size(width = 48.dp, height = 28.dp),
+                checked = isChecked,
+                onCheckedChange = {
+                    isChecked = it
+                    onToggle(it)
+                },
                 colors = SwitchDefaults.colors(
-                    checkedThumbColor = colorResource(id = R.color.text_primary),
+                    checkedThumbColor = Color.White,
                     checkedTrackColor = colorResource(id = R.color.primary_purple),
                     uncheckedThumbColor = colorResource(id = R.color.text_muted),
-                    uncheckedTrackColor = colorResource(id = R.color.surface_dark)
+                    uncheckedTrackColor = colorResource(id = R.color.surface_dark).copy(alpha = 0.5f),
+                    uncheckedBorderColor = Color.Transparent
                 )
             )
         }
     }
-}
-
-@Composable
-fun parseColor(hexColor: String): androidx.compose.ui.graphics.Color {
-    return androidx.compose.ui.graphics.Color(Color.parseColor(hexColor))
 }

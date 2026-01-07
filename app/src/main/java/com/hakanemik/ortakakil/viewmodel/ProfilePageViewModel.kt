@@ -37,6 +37,7 @@ class ProfilePageViewModel @Inject constructor(
                     // Backend verisini güvenle güncelle
                     _uiState.update { it.copy(
                         totalDecisionCount = response.data.data?.totalDecisionCount.toString(),
+                        totalShareCount = response.data.data?.totalDecisionShareCount.toString(),
                         isLoading = false
                     ) }
 

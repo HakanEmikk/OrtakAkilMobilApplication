@@ -34,7 +34,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.google.gson.Gson
+import com.hakanemik.ortakakil.entity.AnswerItem
+import com.hakanemik.ortakakil.entity.DiscoveryResponse
 import com.hakanemik.ortakakil.entity.Enum.SnackbarType
+import com.hakanemik.ortakakil.entity.HistoryResponse
 import com.hakanemik.ortakakil.entity.NavItem
 import com.hakanemik.ortakakil.helper.currentDeviceSizeHelper
 import com.hakanemik.ortakakil.ui.components.ModernBottomBar
@@ -44,9 +47,12 @@ import com.hakanemik.ortakakil.ui.page.AccountInfoPage
 import com.hakanemik.ortakakil.ui.page.AnswerPage
 import com.hakanemik.ortakakil.ui.page.DiscoveryDetailPage
 import com.hakanemik.ortakakil.ui.page.DiscoveryPage
+import com.hakanemik.ortakakil.ui.page.HistoryDetailPage
+import com.hakanemik.ortakakil.ui.page.HistoryPage
 import com.hakanemik.ortakakil.ui.page.HomePage
 import com.hakanemik.ortakakil.ui.page.LoginPage
 import com.hakanemik.ortakakil.ui.page.NotificationSettingsPage
+import com.hakanemik.ortakakil.ui.page.OnboardingPage
 import com.hakanemik.ortakakil.ui.page.ProfilePage
 import com.hakanemik.ortakakil.ui.page.RegisterPage
 import com.hakanemik.ortakakil.ui.page.SplashPage
@@ -140,11 +146,12 @@ fun PageSelect(
 
     val bottomItems = listOf(
         NavItem(Screen.Home.route, "Ana Sayfa", R.drawable.outline_home),
-        NavItem(Screen.Discovery.route, "Geçmiş",  R.drawable.world), // Assuming History page route
-        NavItem(Screen.NotificationSettings.route, "Ayarlar", R.drawable.notification) // Temporarily pointing to settings for the icon
+        NavItem(Screen.Discovery.route, "Keşfet",  R.drawable.world), // Assuming History page route
+        NavItem(Screen.History.route, "Geçmişim", R.drawable.history) // Temporarily pointing to settings for the icon
     )
 
     Scaffold(modifier = Modifier.fillMaxSize(),
+        containerColor = colorResource(id = R.color.background_dark),
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState) { data ->
                 val backgroundColor = when (currentSnackbarType) {
@@ -190,12 +197,29 @@ fun PageSelect(
 
         NavHost(
             navController = navController,
-            startDestination = startDestination ?: Screen.Login.route,
+            startDestination = startDestination ?: Screen.Onboarding.route,
             modifier = Modifier.padding(
                 top = if (topBarState.isVisible) innerPadding.calculateTopPadding() else 0.dp,
                 bottom = if (bottomBarState.isVisible) innerPadding.calculateBottomPadding() else 0.dp
             )
         ) {
+            composable(route= Screen.History.route){
+                LaunchedEffect(Unit) {
+                    mainActivityViewModel.setTopBar(
+                        isVisible = true,
+                        title ="Geçmişim"
+                    )
+                    mainActivityViewModel.showBottomBar()
+                }
+                HistoryPage(navController)
+            }
+            composable(route= Screen.Onboarding.route){
+                LaunchedEffect(Unit) {
+                    mainActivityViewModel.hideTopBar()
+                    mainActivityViewModel.hideBottomBar()
+                }
+                OnboardingPage(navController, onShowSnackbar = { msg, type -> mainActivityViewModel.showSnackbar(msg, type)})
+            }
             composable(route = Screen.Login.route) {
                 LaunchedEffect(Unit) {
                     mainActivityViewModel.hideTopBar()
@@ -276,18 +300,21 @@ fun PageSelect(
             }
             composable(
                 route = Screen.Answer.route,
-                arguments = listOf(navArgument("question") { type = NavType.StringType })
+                arguments = listOf(navArgument("answerItem") { type = NavType.StringType })
             ) { backStackEntry ->
-                val question = backStackEntry.arguments?.getString("question")
-                LaunchedEffect(Unit) {
-                    mainActivityViewModel.setTopBar(
-                        title = "Yapay Zekanın Önerisi",
-                        leftIcon = R.drawable.arrow_back,
-                        onLeftClick = { mainActivityViewModel.answerPageBackNavigate() },
-                    )
-                    mainActivityViewModel.hideBottomBar()
+                val json = backStackEntry.arguments?.getString("answerItem")
+                if (json != null){
+                    val answerItem = Gson().fromJson(json, AnswerItem::class.java)
+                    LaunchedEffect(Unit) {
+                        mainActivityViewModel.setTopBar(
+                            title = "Ortak Akıl'ın Önerisi",
+                            leftIcon = R.drawable.arrow_back,
+                            onLeftClick = { mainActivityViewModel.answerPageBackNavigate() },
+                        )
+                        mainActivityViewModel.hideBottomBar()
+                    }
+                    AnswerPage(navController, onShowSnackbar = { msg, type -> mainActivityViewModel.showSnackbar(msg, type)},answerItem)
                 }
-                AnswerPage(navController, mainActivityViewModel::showSnackbar, question)
             }
             composable(
                 route = Screen.DiscoveryDetail.route,
@@ -295,7 +322,7 @@ fun PageSelect(
             ) { backStackEntry ->
                 val json = backStackEntry.arguments?.getString("discoveryJson")
                 if (json != null) {
-                    val discoveryItem = Gson().fromJson(json, com.hakanemik.ortakakil.entity.DiscoveryResponse::class.java)
+                    val discoveryItem = Gson().fromJson(json, DiscoveryResponse::class.java)
                     
                     LaunchedEffect(Unit) {
                         mainActivityViewModel.setTopBar(
@@ -306,6 +333,25 @@ fun PageSelect(
                         mainActivityViewModel.hideBottomBar()
                     }
                     DiscoveryDetailPage(navController, discoveryItem)
+                }
+            }
+            composable(
+                route = Screen.HistoryDetail.route,
+                arguments = listOf(navArgument("historyJson") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val json = backStackEntry.arguments?.getString("historyJson")
+                if (json != null) {
+                    val historyItem = Gson().fromJson(json, HistoryResponse::class.java)
+
+                    LaunchedEffect(Unit) {
+                        mainActivityViewModel.setTopBar(
+                            title = "Detay",
+                            leftIcon = R.drawable.arrow_back,
+                            onLeftClick = { navController.popBackStack() }
+                        )
+                        mainActivityViewModel.hideBottomBar()
+                    }
+                    HistoryDetailPage(navController,historyItem)
                 }
             }
         }

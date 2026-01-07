@@ -1,32 +1,14 @@
 package com.hakanemik.ortakakil.ui.page
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -42,6 +24,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.hakanemik.ortakakil.R
+import com.hakanemik.ortakakil.entity.AnswerItem
 import com.hakanemik.ortakakil.entity.AnswerUiEvent
 import com.hakanemik.ortakakil.entity.Enum.SnackbarType
 import com.hakanemik.ortakakil.helper.currentDeviceSizeHelper
@@ -49,34 +32,32 @@ import com.hakanemik.ortakakil.helper.responsive
 import com.hakanemik.ortakakil.ui.utils.AnswerShareSheet
 import com.hakanemik.ortakakil.viewmodel.AnswerPageViewModel
 
-
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun AnswerPage(
     navController: NavController,
     onShowSnackbar: (String, SnackbarType) -> Unit,
-    question: String?,
+    answerItem: AnswerItem,
     viewModel: AnswerPageViewModel = hiltViewModel()
 ) {
-    LaunchedEffect(question) {
-        question?.let {
-            viewModel.loadAnswer(it,"Genel")
-        }
+    LaunchedEffect(answerItem) {
+        val category = if (answerItem.category == "") "genel" else answerItem.category
+        viewModel.loadAnswer(answerItem.question, category)
     }
+
     val deviceSize = currentDeviceSizeHelper()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
     var showSheet by remember { mutableStateOf(false) }
 
-    LaunchedEffect(true) {
+    LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
-            when(event) {
+            when (event) {
                 is AnswerUiEvent.ShareSuccess -> {
                     showSheet = false
                     onShowSnackbar("Sorunuz paylaşıldı", SnackbarType.SUCCESS)
                 }
                 is AnswerUiEvent.ShareError -> {
-                    onShowSnackbar("Paylaşılırken bir hata oluştu",SnackbarType.ERROR)
+                    onShowSnackbar("Paylaşılırken bir hata oluştu", SnackbarType.ERROR)
                 }
             }
         }
@@ -85,86 +66,75 @@ fun AnswerPage(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        colorResource(id = R.color.background_dark),
-                        colorResource(id = R.color.background_dark).copy(alpha = 0.95f),
-                        colorResource(id = R.color.surface_dark).copy(alpha = 0.4f)
-                    )
-                )
-            )
-            .padding(horizontal = 16.dp)
-            .padding(top = 20.dp, bottom = 35.dp),
-        verticalArrangement = Arrangement.SpaceBetween
+            .background(colorResource(id = R.color.background_dark))
+            .padding(horizontal = 20.dp)
     ) {
         LazyColumn(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-
+            // 1. SORU BÖLÜMÜ
             item {
-                Column(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
                     Text(
-                        text = "Sorunuz:",
-                        fontSize = 14.sp,
-                        color = colorResource(id = R.color.text_secondary),
-                        fontWeight = FontWeight.Medium
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = question ?: "Soru yüklenıyor...",
-                        color = colorResource(id = R.color.text_primary),
-                        fontSize = 24.sp,
+                        text = "Sorduğun Soru",
+                        fontSize = 13.sp,
+                        color = colorResource(id = R.color.primary_purple),
                         fontWeight = FontWeight.Bold,
-                        lineHeight = 32.sp
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    Text(
+                        text = answerItem.question ?: "Soru yükleniyor...",
+                        color = Color.White,
+                        fontSize = 26.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        lineHeight = 34.sp
                     )
                 }
             }
 
-            // Cevap Bölümü
+            // 2. AI CEVAP KARTI (Glassmorphism Effect)
             item {
                 Card(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(24.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = colorResource(id = R.color.surface_light)
+                        containerColor = colorResource(id = R.color.surface_dark).copy(alpha = 0.6f)
                     ),
-                    border = CardDefaults.outlinedCardBorder().copy(
+                    border = BorderStroke(
+                        width = 1.dp,
                         brush = Brush.verticalGradient(
                             colors = listOf(
-                                colorResource(id = R.color.purple_overlay_20),
-                                colorResource(id = R.color.purple_overlay_10)
+                                Color.White.copy(alpha = 0.15f),
+                                Color.Transparent
                             )
                         )
-                    ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                    )
                 ) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(20.dp),
-                        horizontalAlignment = Alignment.Start,
-                        verticalArrangement = Arrangement.Top
+                            .padding(24.dp)
                     ) {
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.pencil), // AI Yıldızları/Işıltısı ikonu daha iyi olur
+                                contentDescription = null,
+                                tint = colorResource(id = R.color.primary_purple),
+                                modifier = Modifier.size(20.dp)
+                            )
                             Text(
                                 "Ortak Akıl'ın Önerisi",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = colorResource(id = R.color.text_primary)
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
                             )
-
                         }
 
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(20.dp))
 
                         if (uiState.isLoading) {
                             Column(
@@ -175,21 +145,22 @@ fun AnswerPage(
                             ) {
                                 CircularProgressIndicator(
                                     color = colorResource(id = R.color.primary_purple),
-                                    modifier = Modifier.size(40.dp)
+                                    strokeWidth = 3.dp,
+                                    modifier = Modifier.size(36.dp)
                                 )
-                                Spacer(modifier = Modifier.height(12.dp))
+                                Spacer(modifier = Modifier.height(16.dp))
                                 Text(
-                                    "Cevap hazırlanıyor...",
-                                    color = colorResource(id = R.color.text_secondary),
+                                    "Veriler analiz ediliyor...",
+                                    color = colorResource(id = R.color.text_muted),
                                     fontSize = 14.sp
                                 )
                             }
                         } else {
                             Text(
                                 text = uiState.answer,
-                                color = colorResource(id = R.color.text_primary),
+                                color = Color.White.copy(alpha = 0.9f),
                                 fontSize = 16.sp,
-                                lineHeight = 24.sp,
+                                lineHeight = 26.sp, // Okunabilirlik için artırıldı
                                 modifier = Modifier.fillMaxWidth()
                             )
                         }
@@ -197,58 +168,66 @@ fun AnswerPage(
                 }
             }
         }
-        Column {
-            Canvas(modifier = Modifier
-                .fillMaxWidth()
-                .height(1.dp)
-            ) {
+
+        // 3. ALT AKSİYON ALANI
+        Column(
+            modifier = Modifier
+                .padding(bottom = 32.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Şık bir ayırıcı çizgi
+            Canvas(modifier = Modifier.fillMaxWidth().height(1.dp)) {
                 drawLine(
                     brush = Brush.horizontalGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            Color.White,
-                            Color.Transparent
-                        )
+                        colors = listOf(Color.Transparent, Color.White.copy(alpha = 0.2f), Color.Transparent)
                     ),
                     start = Offset(0f, 0f),
-                    end = Offset(size.width, 0f),
-                    strokeWidth = 1.dp.toPx()
+                    end = Offset(size.width, 0f)
                 )
             }
-            Spacer(modifier = Modifier.height(8.dp.responsive(8.dp, 10.dp, 8.dp, deviceSize)))
+
+            Spacer(modifier = Modifier.height(20.dp))
+
             Button(
-                onClick = { showSheet= true },
+                onClick = { showSheet = true },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
+                    .height(58.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = colorResource(id = R.color.primary_purple)
-            ),
-                shape = RoundedCornerShape(12.dp)
+                ),
+                shape = RoundedCornerShape(16.dp),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.world),
                     contentDescription = null,
                     modifier = Modifier.size(20.dp),
-                    tint = colorResource(id = R.color.text_primary)
+                    tint = Color.White
                 )
-                Spacer(modifier = Modifier.size(12.dp))
+                Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    "Topluluğun Fikrini Al",
-                    color = colorResource(id = R.color.text_primary),
+                    "Keşfet'te Paylaş",
+                    color = Color.White,
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.Bold
                 )
             }
-            Text("Bu soruyu diğer kullanıcılara göndererek farklı bakış açıları kazanın",
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
-                fontSize = 14.sp,
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = "Bu kararı diğer insanlarla paylaşarak fikir alabilirsiniz.",
+                fontSize = 12.sp,
                 textAlign = TextAlign.Center,
-                color = colorResource(id = R.color.text_primary).copy(alpha = 0.8f)
+                color = colorResource(id = R.color.text_muted),
+                modifier = Modifier.padding(horizontal = 24.dp)
             )
         }
     }
-    if (showSheet){
+
+    if (showSheet) {
         AnswerShareSheet(
             onDismiss = { showSheet = false },
             value = uiState.shareNote,
@@ -257,5 +236,3 @@ fun AnswerPage(
         )
     }
 }
-
-

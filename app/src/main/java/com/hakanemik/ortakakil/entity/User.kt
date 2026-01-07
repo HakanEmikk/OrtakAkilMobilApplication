@@ -19,6 +19,8 @@ data class User(
     var createdDate: String? = null,
     @SerializedName("totalDecisionCount")
     var totalDecisionCount: Int? = null,
+    @SerializedName("totalDecisionShareCount")
+    var totalDecisionShareCount: Int? = null,
     @SerializedName("authProvider")
     var authProvider: String? = null,
     @SerializedName("pictureUrl")

@@ -1,20 +1,10 @@
 package com.hakanemik.ortakakil.ui.page
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -22,21 +12,21 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -55,32 +45,26 @@ fun ProfilePage(
     onShowSnackbar: (String, SnackbarType) -> Unit,
     viewModel: ProfilePageViewModel = hiltViewModel()
 ) {
-
     val deviceSize = currentDeviceSizeHelper()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val imageSource=if (uiState.photoUrl == "")  R.drawable.person else uiState.photoUrl
+    val imageSource = if (uiState.photoUrl.isEmpty()) R.drawable.user else uiState.photoUrl
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        colorResource(id = R.color.background_dark),
-                        colorResource(id = R.color.background_dark).copy(alpha = 0.95f),
-                        colorResource(id = R.color.surface_dark).copy(alpha = 0.4f)
-                    )
-                )
-            )
-            .padding(horizontal = 24.dp)
-            .verticalScroll(rememberScrollState()),
+            .background(colorResource(id = R.color.background_dark))
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(Modifier.height(32.dp.responsive(32.dp, 40.dp, 36.dp, deviceSize)))
+        Spacer(Modifier.height(48.dp.responsive(48.dp, 56.dp, 64.dp, deviceSize)))
 
+        // --- 1. PROFIL FOTOĞRAFI (Premium Glow Border) ---
         Box(
             modifier = Modifier
-                .size(140.dp)
-                .background(
+                .size(130.dp)
+                .border(
+                    width = 2.dp,
                     brush = Brush.linearGradient(
                         colors = listOf(
                             colorResource(id = R.color.gradient_start),
@@ -89,136 +73,104 @@ fun ProfilePage(
                     ),
                     shape = CircleShape
                 )
-                .padding(1.dp),
+                .padding(6.dp),
             contentAlignment = Alignment.Center
         ) {
             AsyncImage(
+                model = imageSource,
                 contentDescription = "Profile Image",
-                model =  imageSource,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxSize()
-                    .clip(CircleShape)
+                    .clip(CircleShape),
+                error = painterResource(R.drawable.user),
+                fallback = painterResource(R.drawable.user)
             )
         }
 
-        Spacer(Modifier.height(28.dp.responsive(28.dp, 32.dp, 28.dp, deviceSize)))
+        Spacer(Modifier.height(24.dp))
 
-        // User Name
+        // --- 2. KULLANICI BİLGİLERİ ---
         Text(
-            text = uiState.userName.uppercase(),
-            color = colorResource(id = R.color.text_primary),
-            fontSize = 32f.responsiveSp(32f, 36f, 40f, deviceSize),
-            fontWeight = FontWeight.Bold
+            text = uiState.userName.lowercase().replaceFirstChar { it.uppercase() },
+            color = Color.White,
+            fontSize = 28.sp,
+            fontWeight = FontWeight.ExtraBold
         )
-
-        Spacer(Modifier.height(8.dp))
-
-        // User Email
         Text(
             text = uiState.email,
-            color = colorResource(id = R.color.text_secondary),
-            fontSize = 14f.responsiveSp(14f, 16f, 18f, deviceSize),
+            color = colorResource(id = R.color.text_muted),
+            fontSize = 14.sp,
+            modifier = Modifier.padding(top = 4.dp)
         )
 
-        Spacer(Modifier.height(32.dp.responsive(32.dp, 40.dp, 36.dp, deviceSize)))
+        Spacer(Modifier.height(32.dp))
 
-        // Profile Stats Section
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(max = 220.dp)
-        ) {
-            item { ProfilInfoCard(number = uiState.totalDecisionCount, numberText = "Soru Soruldu", deviceSize) }
-            item { ProfilInfoCard(number = uiState.totalShareCount, numberText = "Cevap Paylaşıldı", deviceSize) }
-        }
-
-        Spacer(Modifier.height(40.dp.responsive(40.dp, 44.dp, 40.dp, deviceSize)))
-
-        // Settings Section Title
+        // --- 3. İSTATİSTİK KARTLARI (Glassmorphism) ---
         Row(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text(
-                "Ayarlar",
-                color = colorResource(id = R.color.text_primary),
-                fontSize = 18f.responsiveSp(18f, 20f, 22f, deviceSize),
-                fontWeight = FontWeight.Bold
+            ProfilInfoCard(
+                modifier = Modifier.weight(1f),
+                number = uiState.totalDecisionCount,
+                label = "Soru Soruldu",
+                deviceSize = deviceSize
+            )
+            ProfilInfoCard(
+                modifier = Modifier.weight(1f),
+                number = uiState.totalShareCount,
+                label = "Paylaşım",
+                deviceSize = deviceSize
             )
         }
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(40.dp))
 
-        // Settings Cards
-        LazyColumn(
+        // --- 4. AYARLAR LİSTESİ ---
+        Text(
+            "Hesap Ayarları",
+            color = Color.White,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
             modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(max = 350.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+                .align(Alignment.Start)
+                .padding(bottom = 16.dp)
+        )
+
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            item {
-                SettingsCard(
-                    settingName = "Hesap Bilgileri",
-                    leftIcon = R.drawable.person,
-                    onClick = {navController.navigate("account_info_page")},
-                    deviceSize
-                )
-            }
-            item {
-                SettingsCard(
-                    settingName = "Bildirim Ayarları",
-                    leftIcon = R.drawable.notification,
-                    onClick = {navController.navigate("notification_settings_page")},
-                    deviceSize
-                )
-            }
-            item {
-                SettingsCard(
-                    settingName = "Gizlilik ve Güvenlik",
-                    leftIcon = R.drawable.handshake,
-                    onClick = {},
-                    deviceSize
-                )
-            }
-            item {
-                SettingsCard(
-                    settingName = "Yardım ve Destek",
-                    leftIcon = R.drawable.question,
-                    onClick = {},
-                    deviceSize
-                )
-            }
+            SettingsCard("Hesap Bilgileri", R.drawable.person, { navController.navigate("account_info_page") }, deviceSize)
+            SettingsCard("Bildirim Ayarları", R.drawable.notification, { navController.navigate("notification_settings_page") }, deviceSize)
+            SettingsCard("Gizlilik ve Güvenlik", R.drawable.handshake, {}, deviceSize)
+
+            // Çıkış Yap (Opsiyonel ama şık durur)
+//            SettingsCard("Çıkış Yap", R.drawable.settings, {}, deviceSize, isDanger = true)
         }
 
-        Spacer(Modifier.height(32.dp.responsive(32.dp, 40.dp, 36.dp, deviceSize)))
+        Spacer(Modifier.height(40.dp))
     }
 }
 
 @Composable
 fun ProfilInfoCard(
+    modifier: Modifier = Modifier,
     number: String,
-    numberText: String,
+    label: String,
     deviceSize: DeviceSize
 ) {
     Card(
-        modifier = Modifier.aspectRatio(2.1f),
-        shape = RoundedCornerShape(16.dp),
+        modifier = modifier.height(100.dp),
+        shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
-            containerColor = colorResource(id = R.color.surface_light)
+            containerColor = colorResource(id = R.color.surface_dark).copy(alpha = 0.5f)
         ),
-        border = CardDefaults.outlinedCardBorder().copy(
-            brush = Brush.verticalGradient(
-                colors = listOf(
-                    colorResource(id = R.color.purple_overlay_20),
-                    colorResource(id = R.color.purple_overlay_10)
-                )
-            )
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        border = BorderStroke(
+            1.dp,
+            brush = Brush.verticalGradient(listOf(Color.White.copy(0.1f), Color.Transparent))
+        )
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -228,14 +180,13 @@ fun ProfilInfoCard(
             Text(
                 text = number,
                 color = colorResource(R.color.primary_purple),
-                fontSize = 28f.responsiveSp(28f, 32f, 36f, deviceSize),
-                fontWeight = FontWeight.Bold
+                fontSize = 24.sp,
+                fontWeight = FontWeight.ExtraBold
             )
-            Spacer(modifier = Modifier.height(6.dp))
             Text(
-                text = numberText,
-                color = colorResource(id = R.color.text_secondary),
-                fontSize = 12f.responsiveSp(12f, 14f, 16f, deviceSize),
+                text = label,
+                color = colorResource(id = R.color.text_muted),
+                fontSize = 12.sp,
                 fontWeight = FontWeight.Medium
             )
         }
@@ -247,57 +198,60 @@ fun SettingsCard(
     settingName: String,
     leftIcon: Int,
     onClick: () -> Unit,
-    deviceSize: DeviceSize
+    deviceSize: DeviceSize,
+    isDanger: Boolean = false
 ) {
+    val contentColor = if (isDanger) colorResource(R.color.warning) else Color.White
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(56.dp.responsive(56.dp, 60.dp, 56.dp, deviceSize))
+            .height(64.dp)
             .clickable { onClick() },
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(
-            containerColor = colorResource(id = R.color.surface_light)
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            containerColor = colorResource(id = R.color.surface_light).copy(alpha = 0.3f)
+        )
     ) {
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp.responsive(16.dp, 18.dp, 16.dp, deviceSize)),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+                .padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f)
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(
+                        color = if (isDanger) colorResource(R.color.warning).copy(0.1f)
+                        else colorResource(id = R.color.primary_purple).copy(0.1f),
+                        shape = RoundedCornerShape(12.dp)
+                    ),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(colorResource(id = R.color.purple_overlay_10)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        painter = painterResource(id = leftIcon),
-                        contentDescription = "settings",
-                        tint = colorResource(id = R.color.primary_purple),
-                        modifier = Modifier.size(20.dp.responsive(20.dp, 24.dp, 20.dp, deviceSize))
-                    )
-                }
-                Spacer(modifier = Modifier.width(14.dp))
-                Text(
-                    settingName,
-                    color = colorResource(id = R.color.text_primary),
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 15f.responsiveSp(15f, 16f, 17f, deviceSize)
+                Icon(
+                    painter = painterResource(id = leftIcon),
+                    contentDescription = null,
+                    tint = if (isDanger) colorResource(R.color.warning) else colorResource(id = R.color.primary_purple),
+                    modifier = Modifier.size(20.dp)
                 )
             }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Text(
+                text = settingName,
+                color = contentColor,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.weight(1f)
+            )
+
             Icon(
                 painter = painterResource(id = R.drawable.arrow_back),
-                contentDescription = "arrow",
-                tint = colorResource(id = R.color.text_secondary),
-                modifier = Modifier.size(18.dp)
+                contentDescription = null,
+                tint = colorResource(id = R.color.text_muted),
+                modifier = Modifier.size(16.dp).graphicsLayer(rotationZ = 180f)
             )
         }
     }

@@ -1,6 +1,6 @@
 package com.hakanemik.ortakakil.ui.page
 
-import android.annotation.SuppressLint
+
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
@@ -15,7 +15,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -32,129 +33,36 @@ import com.hakanemik.ortakakil.entity.Resource
 import com.hakanemik.ortakakil.helper.DeviceSize
 import com.hakanemik.ortakakil.helper.currentDeviceSizeHelper
 import com.hakanemik.ortakakil.helper.responsive
-import com.hakanemik.ortakakil.helper.responsiveSp
 import com.hakanemik.ortakakil.ui.utils.AuthButton
 import com.hakanemik.ortakakil.ui.utils.AuthTextFields
 import com.hakanemik.ortakakil.viewmodel.LoginPageViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "SuspiciousIndentation")
 @Composable
 fun LoginPage(
     navController: NavController,
-    onShowSnackbar: (String,SnackbarType) -> Unit
+    onShowSnackbar: (String, SnackbarType) -> Unit,
+    viewModel: LoginPageViewModel = hiltViewModel()
 ) {
-    val viewModel: LoginPageViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    when (val deviceSize = currentDeviceSizeHelper()) {
-        DeviceSize.Compact -> CompactLoginLayout(deviceSize, uiState, viewModel, navController)
-        DeviceSize.Medium -> MediumLoginLayout(deviceSize, uiState, viewModel, navController)
-        DeviceSize.Expanded -> ExpandedLoginLayout(deviceSize, uiState, viewModel, navController)
-    }
+    val deviceSize = currentDeviceSizeHelper()
 
-    // Handle UI State
-    HandleUIState(uiState.loginState, navController, onShowSnackbar)
-}
-
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-private fun CompactLoginLayout(
-    deviceSize: DeviceSize,
-    uiState: LoginUiState,
-    viewModel: LoginPageViewModel,
-    navController: NavController
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(color = colorResource(id = R.color.background_dark))
-            .padding(horizontal = 24.dp)
-            .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .background(colorResource(id = R.color.background_dark))
     ) {
-        LoginContent(deviceSize, uiState, viewModel, navController)
-    }
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-private fun MediumLoginLayout(
-    deviceSize: DeviceSize,
-    uiState: LoginUiState,
-    viewModel: LoginPageViewModel,
-    navController: NavController
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(color = colorResource(id = R.color.background_dark))
-    ) {
-        Spacer(modifier = Modifier.weight(0.2f))
         Column(
             modifier = Modifier
-                .weight(0.6f)
-                .fillMaxHeight()
+                .fillMaxSize()
+                .padding(horizontal = 24.dp)
                 .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             LoginContent(deviceSize, uiState, viewModel, navController)
         }
-        Spacer(modifier = Modifier.weight(0.2f))
     }
-}
 
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-private fun ExpandedLoginLayout(
-    deviceSize: DeviceSize,
-    uiState: LoginUiState,
-    viewModel: LoginPageViewModel,
-    navController: NavController
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(color = colorResource(id = R.color.background_dark))
-    ) {
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight()
-                .padding(48.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.ortak_akil_logo),
-                contentDescription = "Logo",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(200.dp.responsive(200.dp, 250.dp, 200.dp, deviceSize))
-                    .clip(RoundedCornerShape(20.dp))
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-            Text(
-                text = "Akıllı kararlar ver, topluluğa katıl",
-                fontSize = 15f.responsiveSp(15f, 18f, 20f, deviceSize),
-                color = colorResource(id = R.color.text_primary),
-                textAlign = TextAlign.Center
-            )
-        }
-
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight()
-                .padding(48.dp)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            LoginFormOnly(deviceSize, uiState, viewModel, navController)
-        }
-    }
+    HandleUIState(uiState.loginState, navController, onShowSnackbar)
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -165,67 +73,40 @@ fun LoginContent(
     viewModel: LoginPageViewModel,
     navController: NavController
 ) {
-    Spacer(modifier = Modifier.height(120.dp.responsive(120.dp, 60.dp, 40.dp, deviceSize)))
+    Spacer(modifier = Modifier.height(80.dp.responsive(80.dp, 60.dp, 40.dp, deviceSize)))
 
-    Image(
-        painter = painterResource(id = R.drawable.ortak_akil_logo),
-        contentDescription = "Logo",
-        contentScale = ContentScale.Crop,
-        modifier = Modifier
-            .size(160.dp.responsive(160.dp, 200.dp, 160.dp, deviceSize))
-            .clip(RoundedCornerShape(20.dp))
-    )
+    // Logo Area
+    Box(contentAlignment = Alignment.Center) {
+        // Soft Glow behind logo
+        Box(modifier = Modifier.size(140.dp).background(
+            Brush.radialGradient(listOf(colorResource(R.color.primary_purple).copy(0.15f), Color.Transparent))
+        ))
+        Image(
+            painter = painterResource(id = R.drawable.ortak_akil_logo),
+            contentDescription = "Logo",
+            modifier = Modifier.size(140.dp).clip(RoundedCornerShape(36.dp))
+        )
+    }
 
-    Spacer(modifier = Modifier.height(24.dp.responsive(24.dp, 30.dp, 28.dp, deviceSize)))
+    Spacer(modifier = Modifier.height(32.dp))
 
     Text(
-        text = "Akıllı kararlar ver",
-        fontSize = 28f.responsiveSp(28f, 32f, 36f, deviceSize),
-        color = colorResource(id = R.color.text_primary),
-        fontWeight = FontWeight.Bold,
+        text = "Ortak Akıl'a Hoş Geldin",
+        fontSize = 28.sp,
+        color = Color.White,
+        fontWeight = FontWeight.ExtraBold,
         textAlign = TextAlign.Center
     )
 
-    Spacer(modifier = Modifier.height(8.dp))
-
     Text(
-        text = "topluluğa katıl",
-        fontSize = 16f.responsiveSp(16f, 18f, 20f, deviceSize),
-        color = colorResource(id = R.color.text_secondary),
-        textAlign = TextAlign.Center
+        text = "Akıllı kararlar için topluluğun gücünü keşfet",
+        fontSize = 14.sp,
+        color = colorResource(id = R.color.text_muted),
+        textAlign = TextAlign.Center,
+        modifier = Modifier.padding(top = 8.dp)
     )
 
-    Spacer(modifier = Modifier.height(40.dp.responsive(40.dp, 50.dp, 48.dp, deviceSize)))
-
-    LoginForm(
-        uiState = uiState,
-        deviceSize = deviceSize,
-        onEmailChange = viewModel::onEmailChange,
-        onPasswordChange = viewModel::onPasswordChange,
-        onRememberMeChange = viewModel::onRememberMeChange,
-        onLogin = viewModel::login,
-        onNavigateToRegister = { navController.navigate("register_page") },
-        onGoogleSignIn = viewModel::loginWithGoogle
-    )
-
-    Spacer(modifier = Modifier.height(40.dp.responsive(40.dp, 50.dp, 40.dp, deviceSize)))
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-private fun LoginFormOnly(
-    deviceSize: DeviceSize,
-    uiState: LoginUiState,
-    viewModel: LoginPageViewModel,
-    navController: NavController
-) {
-    Text(
-        text = "Giriş Yap",
-        fontSize = 32.sp,
-        color = colorResource(id = R.color.text_primary),
-        fontWeight = FontWeight.Bold,
-        modifier = Modifier.padding(bottom = 32.dp)
-    )
+    Spacer(modifier = Modifier.height(48.dp))
 
     LoginForm(
         uiState = uiState,
@@ -252,181 +133,89 @@ private fun LoginForm(
 ) {
     val isLoading = uiState.loginState is Resource.Loading
 
-    // Email
-    Column {
-        AuthTextFields(
-            onValueChange = onEmailChange,
-            label = "E-mail",
-            value = uiState.email,
-            deviceSize = deviceSize
-        )
-        if (uiState.emailError != null) {
-            Text(
-                text = uiState.emailError,
-                color = colorResource(id = R.color.error),
-                fontSize = 12f.responsiveSp(12f, 14f, 16f, deviceSize),
-                modifier = Modifier.padding(start = 4.dp, top = 6.dp)
-            )
-        }
+    AuthTextFields(
+        onValueChange = onEmailChange,
+        label = "E-posta Adresi",
+        value = uiState.email,
+        deviceSize = deviceSize
+    )
+
+    if (uiState.emailError != null) {
+        Text(uiState.emailError, color = colorResource(R.color.error), fontSize = 12.sp, modifier = Modifier.padding(start = 4.dp, top = 4.dp))
     }
 
-    Spacer(modifier = Modifier.height(20.dp.responsive(20.dp, 24.dp, 28.dp, deviceSize)))
+    Spacer(modifier = Modifier.height(20.dp))
 
-    // Password
-    Column {
-        AuthTextFields(
-            onValueChange = onPasswordChange,
-            label = "Şifre",
-            value = uiState.password,
-            deviceSize = deviceSize,
-            isPassword = true
-        )
-        if (uiState.passwordError != null) {
-            Text(
-                text = uiState.passwordError,
-                color = colorResource(id = R.color.error),
-                fontSize = 12f.responsiveSp(12f, 14f, 16f, deviceSize),
-                modifier = Modifier.padding(start = 4.dp, top = 6.dp)
-            )
-        }
+    AuthTextFields(
+        onValueChange = onPasswordChange,
+        label = "Şifre",
+        value = uiState.password,
+        deviceSize = deviceSize,
+        isPassword = true
+    )
+
+    if (uiState.passwordError != null) {
+        Text(uiState.passwordError, color = colorResource(R.color.error), fontSize = 12.sp, modifier = Modifier.padding(start = 4.dp, top = 4.dp))
     }
 
-    Spacer(modifier = Modifier.height(16.dp.responsive(16.dp, 20.dp, 24.dp, deviceSize)))
-
-    // Remember Me
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Checkbox(
-                checked = uiState.rememberMe,
-                onCheckedChange = onRememberMeChange,
-                colors = CheckboxDefaults.colors(
-                    checkedColor = colorResource(id = R.color.primary_purple),
-                    uncheckedColor = colorResource(id = R.color.text_secondary)
-                ),
-                modifier = Modifier.size(18.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "Beni Hatırla",
-                color = colorResource(id = R.color.text_secondary),
-                fontSize = 14f.responsiveSp(14f, 16f, 18f, deviceSize)
-            )
-        }
-        Text(
-            text = "Şifremi Unuttum",
-            color = colorResource(id = R.color.primary_purple),
-            fontSize = 14f.responsiveSp(14f, 16f, 18f, deviceSize),
-            fontWeight = FontWeight.Medium
-        )
-    }
-
-    Spacer(modifier = Modifier.height(32.dp.responsive(32.dp, 40.dp, 48.dp, deviceSize)))
+    Spacer(modifier = Modifier.height(32.dp))
 
     AuthButton(
         onClick = onLogin,
         colorRes = R.color.primary_purple,
-        isLoading = isLoading,
-        borderColor = R.color.border_transparent,
         label = "Giriş Yap",
-        deviceSize = deviceSize
-    )
-
-    Spacer(modifier = Modifier.height(17.dp.responsive(17.dp, 20.dp, 24.dp, deviceSize)))
-    Text("VEYA",color = colorResource(id = R.color.text_secondary),
-        fontSize = 14f.responsiveSp(14f, 16f, 18f, deviceSize),fontWeight = FontWeight.Medium)
-    Spacer(modifier = Modifier.height(17.dp.responsive(17.dp, 20.dp, 24.dp, deviceSize)))
-    // Google Sign-In Button
-    GoogleSignInButton(
-        onClick = onGoogleSignIn,
         isLoading = isLoading,
         deviceSize = deviceSize
     )
 
-    Spacer(modifier = Modifier.height(17.dp.responsive(17.dp, 20.dp, 24.dp, deviceSize)))
+    Spacer(modifier = Modifier.height(24.dp))
+
+    Text("VEYA", color = colorResource(R.color.text_muted), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+
+    Spacer(modifier = Modifier.height(24.dp))
+
+    GoogleSignInButton(onClick = onGoogleSignIn, isLoading = isLoading, deviceSize = deviceSize)
+
+    Spacer(modifier = Modifier.height(20.dp))
 
     AuthButton(
         onClick = onNavigateToRegister,
         colorRes = R.color.transparent,
         borderColor = R.color.border_default,
-        label = "Kayıt Ol",
+        label = "Hesabın yok mu? Kayıt Ol",
         deviceSize = deviceSize
     )
+
+    Spacer(modifier = Modifier.height(40.dp))
 }
 
 @Composable
-private fun GoogleSignInButton(
-    onClick: () -> Unit,
-    isLoading: Boolean,
-    deviceSize: DeviceSize
-) {
-    Button(
+private fun GoogleSignInButton(onClick: () -> Unit, isLoading: Boolean, deviceSize: DeviceSize) {
+    OutlinedButton(
         onClick = onClick,
         enabled = !isLoading,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(52.dp.responsive(52.dp, 56.dp, 60.dp, deviceSize))
-            .clip(RoundedCornerShape(10.dp)),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = colorResource(id = R.color.surface_light),
-            disabledContainerColor = colorResource(id = R.color.surface_light)
-        ),
-        border = BorderStroke(
-            width = 2.dp,
-            color = colorResource(id = R.color.border_default)
-        ), shape = RoundedCornerShape(14.dp)
+        modifier = Modifier.fillMaxWidth().height(56.dp),
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f)),
+        colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White.copy(0.05f))
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.google),
-                contentDescription = "Google Logo",
-                modifier = Modifier.size(20.dp)
-            )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Image(painter = painterResource(id = R.drawable.google), contentDescription = null, modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(12.dp))
-            Text(
-                text = "Google ile Giriş Yap",
-                fontSize = 14f.responsiveSp(14f, 16f, 18f, deviceSize),
-                color = colorResource(id = R.color.text_primary),
-                fontWeight = FontWeight.Medium
-            )
-            if (isLoading) {
-                Spacer(modifier = Modifier.width(12.dp))
-                CircularProgressIndicator(
-                    modifier = Modifier.size(16.dp),
-                    color = colorResource(id = R.color.primary_purple),
-                    strokeWidth = 2.dp
-                )
-            }
+            Text("Google ile Devam Et", color = Color.White, fontWeight = FontWeight.SemiBold)
         }
     }
 }
 
 @Composable
-private fun HandleUIState(
-    loginState: Resource<*>?,
-    navController: NavController,
-    onShowSnackbar: (String, SnackbarType) -> Unit
-) {
+fun HandleUIState(loginState: Resource<*>?, navController: NavController, onShowSnackbar: (String, SnackbarType) -> Unit) {
     LaunchedEffect(loginState) {
         when (loginState) {
             is Resource.Success -> {
-                onShowSnackbar("Giriş başarılı", SnackbarType.SUCCESS)
-                navController.navigate("home_page") {
-                    popUpTo("login_page") { inclusive = true }
-                }
+                onShowSnackbar("Başarıyla giriş yapıldı", SnackbarType.SUCCESS)
+                navController.navigate("home_page") { popUpTo("login_page") { inclusive = true } }
             }
-            is Resource.Error -> {
-                onShowSnackbar(loginState.message, SnackbarType.ERROR)
-            }
+            is Resource.Error -> onShowSnackbar(loginState.message, SnackbarType.ERROR)
             else -> {}
         }
     }

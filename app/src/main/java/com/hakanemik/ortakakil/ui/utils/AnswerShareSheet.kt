@@ -1,26 +1,11 @@
 package com.hakanemik.ortakakil.ui.utils
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.BottomSheetDefaults
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hakanemik.ortakakil.R
@@ -36,150 +22,135 @@ import com.hakanemik.ortakakil.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnswerShareSheet(
-    onDismiss : () -> Unit,
+    onDismiss: () -> Unit,
     value: String,
     onValueChange: (String) -> Unit,
     onClick: () -> Unit
-
-){
+) {
     ModalBottomSheet(
-        onDismissRequest = onDismiss ,
+        onDismissRequest = onDismiss,
         containerColor = colorResource(id = R.color.surface_dark),
-        dragHandle = { BottomSheetDefaults.DragHandle(color = Color.Gray) },
-        scrimColor = Color.Black.copy(alpha = 0.4f)
+        dragHandle = { BottomSheetDefaults.DragHandle(color = Color.Gray.copy(alpha = 0.5f)) },
+        scrimColor = Color.Black.copy(alpha = 0.6f),
+        shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp)
-                .padding(bottom = 32.dp),
+                .padding(bottom = 40.dp)
+                .imePadding(), // Klavye açıldığında içeriği yukarı kaydırır
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Icon Section
-            Surface(
-                modifier = Modifier.size(64.dp),
-                shape = CircleShape,
-                color = colorResource(id = R.color.primary_purple).copy(alpha = 0.15f)
+            // --- ICON SECTION (Daha Parlak ve Estetik) ---
+            Box(
+                modifier = Modifier
+                    .size(72.dp)
+                    .background(
+                        colorResource(id = R.color.primary_purple).copy(alpha = 0.1f),
+                        CircleShape
+                    ),
+                contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.emoji_people),
-                    contentDescription = "",
-                    modifier = Modifier.padding(16.dp),
+                    painter = painterResource(R.drawable.world),
+                    contentDescription = null,
+                    modifier = Modifier.size(32.dp),
                     tint = colorResource(id = R.color.primary_purple)
                 )
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Title Section
+            // --- TITLE & SUBTITLE ---
             Text(
-                "Paylaş",
-                color = colorResource(id = R.color.text_primary),
-                fontSize = 26.sp,
-                fontWeight = FontWeight.Bold
+                text = "Keşfet'te Paylaş",
+                color = Color.White,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.ExtraBold
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                "Sorunuz keşfet akışında görünecek.",
+                text = "Analizini toplulukla paylaşarak farklı görüşler alabilir ve diğerlerine ilham verebilirsin.",
                 fontSize = 14.sp,
-                fontWeight = FontWeight.Normal,
-                color = colorResource(id = R.color.text_secondary),
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                color = colorResource(id = R.color.text_muted),
+                textAlign = TextAlign.Center,
+                lineHeight = 20.sp
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-            // Content Section
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.Start
-            ) {
+            // --- INPUT SECTION ---
+            Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    "Not Ekle",
+                    text = "Düşüncelerini Ekle",
                     fontSize = 13.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = colorResource(id = R.color.text_primary)
+                    fontWeight = FontWeight.Bold,
+                    color = colorResource(id = R.color.primary_purple),
+                    modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
                 )
-
-                Spacer(modifier = Modifier.height(12.dp))
 
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(110.dp),
-                    shape = RoundedCornerShape(14.dp),
+                        .height(120.dp),
+                    shape = RoundedCornerShape(20.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = colorResource(id = R.color.surface_light)
+                        containerColor = colorResource(id = R.color.surface_light).copy(alpha = 0.4f)
                     ),
-                    border = CardDefaults.outlinedCardBorder().copy(
+                    border = BorderStroke(
+                        width = 1.dp,
                         brush = Brush.verticalGradient(
-                            colors = listOf(
-                                colorResource(id = R.color.purple_overlay_20),
-                                colorResource(id = R.color.purple_overlay_10)
-                            )
+                            listOf(Color.White.copy(0.1f), Color.Transparent)
                         )
-                    ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                    )
                 ) {
                     TextField(
                         value = value,
                         onValueChange = onValueChange,
                         placeholder = {
                             Text(
-                                text = "Sorunu buraya yaz...",
+                                text = "Neden bu soruyu sordun? Paylaşırken bir not ekle...",
                                 color = colorResource(id = R.color.text_muted),
                                 fontSize = 14.sp
                             )
                         },
-                        singleLine = false,
-                        maxLines = 4,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(12.dp),
+                        modifier = Modifier.fillMaxSize(),
                         colors = TextFieldDefaults.colors(
                             focusedContainerColor = Color.Transparent,
                             unfocusedContainerColor = Color.Transparent,
-                            disabledContainerColor = Color.Transparent,
-                            cursorColor = colorResource(id = R.color.primary_purple),
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
-                            disabledIndicatorColor = Color.Transparent,
-                            focusedTextColor = colorResource(id = R.color.text_primary),
-                            unfocusedTextColor = colorResource(id = R.color.text_primary),
+                            cursorColor = colorResource(id = R.color.primary_purple),
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White
                         )
                     )
                 }
+            }
 
-                Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-                // Share Button
-                Button(
-                    onClick = onClick,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(54.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colorResource(id = R.color.primary_purple)
-                    ),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.world),
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp),
-                        tint = colorResource(id = R.color.text_primary)
-                    )
-                    Spacer(modifier = Modifier.size(10.dp))
-                    Text(
-                        "Paylaş",
-                        color = colorResource(id = R.color.text_primary),
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
+            // --- ACTION BUTTON ---
+            Button(
+                onClick = onClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(58.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colorResource(id = R.color.primary_purple)
+                ),
+                shape = RoundedCornerShape(16.dp),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+            ) {
+                Text(
+                    text = "Şimdi Paylaş",
+                    color = Color.White,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
     }

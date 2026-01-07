@@ -1,5 +1,6 @@
 package com.hakanemik.ortakakil.ui.page
 
+import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -23,7 +24,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -31,14 +31,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -53,6 +56,8 @@ import com.hakanemik.ortakakil.entity.DiscoveryResponse
 import com.hakanemik.ortakakil.entity.Enum.SnackbarType
 import com.hakanemik.ortakakil.helper.currentDeviceSizeHelper
 import com.hakanemik.ortakakil.ui.navigation.Screen
+import com.hakanemik.ortakakil.ui.utils.CommentsBottomSheet
+import com.hakanemik.ortakakil.ui.utils.DateUtils.calculateTimeAgo
 import com.hakanemik.ortakakil.viewmodel.DiscoveryPageViewModel
 
 
@@ -64,8 +69,9 @@ fun DiscoveryPage(
 ) {
     val deviceSize = currentDeviceSizeHelper()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val configuration = LocalConfiguration.current
-    val screenHeightDp = configuration.screenHeightDp
+
+    var showComments by remember { mutableStateOf(false) }
+
 
     LaunchedEffect(Unit) {
         viewModel.refreshFeed()
@@ -101,22 +107,34 @@ fun DiscoveryPage(
                     onClick = {
                         val gson = Gson()
                         val json = gson.toJson(item)
-                        val encodedJson = android.net.Uri.encode(json)
+                        val encodedJson = Uri.encode(json)
                         navController.navigate(Screen.DiscoveryDetail.createRoute(encodedJson))
                     },
                     onLikeClick = {
                         viewModel.toggleLike(item.decisionId)
+                    },
+                    onCommentClick = {
+                        viewModel.getComments(item.decisionId)
+                        showComments = true
                     }
                 )
             }
         }
+    }
+    if (showComments) {
+        CommentsBottomSheet(
+            onDismiss = { showComments = false },
+            comments = uiState.selectedComments, 
+            onSendComment = { text -> viewModel.addComment(text) }
+        )
     }
 }
 @Composable
 fun DiscoveryCard(
     item: DiscoveryResponse, // Parametreleri tek tek geçmek yerine DTO geçmek daha temizdir
     onClick: () -> Unit,
-    onLikeClick: () -> Unit
+    onLikeClick: () -> Unit,
+    onCommentClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -146,13 +164,15 @@ fun DiscoveryCard(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 AsyncImage(
-                    model = item.userPhotoUrl,
+                    model = if (item.userPhotoUrl.isNullOrEmpty()) R.drawable.user else item.userPhotoUrl,
                     contentDescription = null,
                     modifier = Modifier
                         .size(45.dp)
                         .clip(CircleShape)
                         .border(2.dp, Color.White, CircleShape),
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Crop,
+                    error = painterResource(R.drawable.user),
+                    fallback = painterResource(R.drawable.user)
                 )
             }
 
@@ -164,10 +184,11 @@ fun DiscoveryCard(
                     color = colorResource(id = R.color.text_primary)
                 )
                 Text(
-                    text = "2 saat önce",
-                    fontSize = 11.sp,
+                    text = calculateTimeAgo(item.createdDate),
+                    fontSize = 12.sp,
                     color = colorResource(id = R.color.text_muted)
                 )
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "Soru: ${item.title}",
                     fontSize = 13.sp,
@@ -236,21 +257,12 @@ fun DiscoveryCard(
                     Spacer(modifier = Modifier.width(16.dp))
 
                     Icon(
-                        Icons.Default.Edit,
+                        painterResource(R.drawable.comment),
                         null,
                         tint = Color.White,
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(18.dp).clickable { onCommentClick() }
                     )
                     Text(" ${item.commentCount}", color = Color.White, fontSize = 13.sp)
-
-                    Spacer(modifier = Modifier.weight(1f))
-
-                    Icon(
-                        Icons.Default.Share,
-                        null,
-                        tint = Color.White,
-                        modifier = Modifier.size(18.dp)
-                    )
                 }
             }
         }

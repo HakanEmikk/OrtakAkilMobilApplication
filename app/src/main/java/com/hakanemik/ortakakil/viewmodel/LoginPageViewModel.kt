@@ -155,6 +155,7 @@ class LoginPageViewModel @Inject constructor(
                 email = user.email,
                 pictureUrl = user.pictureUrl
             )
+            userRepository.saveRememberMe(true)
         }
     }
 }

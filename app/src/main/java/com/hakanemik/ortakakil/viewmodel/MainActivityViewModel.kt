@@ -72,7 +72,7 @@ class MainActivityViewModel @Inject constructor(
 
             // Güvenli kontrol: Login'e yönlendir
             if (!rememberMe || userId == null || refreshToken == null) {
-                _startDestination.update { Screen.Login.route }
+                _startDestination.update { Screen.Onboarding.route }
                 return@launch
             }
 

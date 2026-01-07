@@ -18,9 +18,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,15 +35,18 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.hakanemik.ortakakil.R
 import com.hakanemik.ortakakil.entity.DiscoveryResponse
-
 import androidx.compose.foundation.clickable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.painterResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.hakanemik.ortakakil.viewmodel.DiscoveryDetailViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.hakanemik.ortakakil.ui.utils.CommentsBottomSheet
+import com.hakanemik.ortakakil.ui.utils.DateUtils.calculateTimeAgo
 
 @Composable
 fun DiscoveryDetailPage(
@@ -55,6 +56,9 @@ fun DiscoveryDetailPage(
 ) {
     var isLiked by remember { mutableStateOf(item.isLikedByMe) }
     var likeCount by remember { mutableIntStateOf(item.likeCount) }
+    var commentCount by remember { mutableIntStateOf(item.commentCount) }
+    var showComments by remember { mutableStateOf(false) }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Column(
         modifier = Modifier
@@ -69,13 +73,15 @@ fun DiscoveryDetailPage(
             modifier = Modifier.fillMaxWidth()
         ) {
             AsyncImage(
-                model = item.userPhotoUrl,
+                model = if (item.userPhotoUrl.isNullOrEmpty()) R.drawable.user else item.userPhotoUrl,
                 contentDescription = null,
                 modifier = Modifier
                     .size(50.dp)
                     .clip(CircleShape)
                     .border(2.dp, Color.White, CircleShape),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
+                error = painterResource(R.drawable.user),
+                fallback = painterResource(R.drawable.user)
             )
             Spacer(modifier = Modifier.width(12.dp))
             Column {
@@ -86,7 +92,7 @@ fun DiscoveryDetailPage(
                     fontSize = 18.sp
                 )
                 Text(
-                    text = item.createdDate, // Assuming createdDate is displayable or formatted
+                    text = calculateTimeAgo(item.createdDate),
                     color = colorResource(id = R.color.text_muted),
                     fontSize = 14.sp
                 )
@@ -121,7 +127,7 @@ fun DiscoveryDetailPage(
         ) {
             Column {
                  Text(
-                    text = "Kullanıcı Yorumu",
+                    text = "Kullanıcı Notu",
                     color = colorResource(id = R.color.primary_purple),
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp
@@ -148,7 +154,7 @@ fun DiscoveryDetailPage(
         ) {
              Column {
                  Text(
-                    text = "Ortak Akıl Cevabı",
+                    text = "Ortak Akıl'ın Önerisi",
                     color = colorResource(id = R.color.primary_purple),
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp
@@ -187,27 +193,43 @@ fun DiscoveryDetailPage(
                 Text(text = "$likeCount Beğeni", color = Color.White)
             }
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable {
+                    viewModel.getComments(item.decisionId)
+                    showComments = true
+                }
+            ) {
                 Icon(
-                    Icons.Default.Edit,
+                    painterResource(id = R.drawable.comment),
                     null,
                     tint = Color.White,
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(text = "${item.commentCount} Yorum", color = Color.White)
+                Text(text = "$commentCount Yorum", color = Color.White)
             }
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    Icons.Default.Share,
-                    null,
-                    tint = Color.White,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = "Paylaş", color = Color.White)
-            }
+//            Row(verticalAlignment = Alignment.CenterVertically) {
+//                Icon(
+//                    Icons.Default.Share,
+//                    null,
+//                    tint = Color.White,
+//                    modifier = Modifier.size(24.dp)
+//                )
+//                Spacer(modifier = Modifier.width(8.dp))
+//                Text(text = "Paylaş", color = Color.White)
+//            }
         }
+        }
+    if (showComments) {
+        CommentsBottomSheet(
+            onDismiss = { showComments = false },
+            comments = uiState.selectedComments,
+            onSendComment = { text ->
+                viewModel.addComment(text, item.decisionId)
+                commentCount++
+            }
+        )
     }
-}
+    }

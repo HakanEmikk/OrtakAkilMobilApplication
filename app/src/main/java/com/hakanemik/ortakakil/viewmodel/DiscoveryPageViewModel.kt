@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.hakanemik.ortakakil.entity.DiscoveryResponse
 import com.hakanemik.ortakakil.entity.DiscoveryUiState
 import com.hakanemik.ortakakil.entity.Resource
+import com.hakanemik.ortakakil.entity.CommentRequest
 import com.hakanemik.ortakakil.repo.OrtakAkilDaoRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -20,7 +21,7 @@ class DiscoveryPageViewModel @Inject constructor(
     private val repository: OrtakAkilDaoRepository
 ):ViewModel() {
     private val _uiState = MutableStateFlow(DiscoveryUiState())
-    val uiState : StateFlow<DiscoveryUiState> = _uiState.asStateFlow()
+    val uiState: StateFlow<DiscoveryUiState> = _uiState.asStateFlow()
 
     private var currentPage = 1
     private var isLastPage = false
@@ -47,7 +48,7 @@ class DiscoveryPageViewModel @Inject constructor(
                 is Resource.Success -> {
                     val newItems = result.data.data ?: emptyList()
                     val currentList = if (isInitial) emptyList() else _uiState.value.list
-                    
+
                     if (newItems.isEmpty()) {
                         isLastPage = true
                     } else {
@@ -56,12 +57,13 @@ class DiscoveryPageViewModel @Inject constructor(
 
                     _uiState.update {
                         it.copy(
-                        list = (currentList + newItems),
-                        isLoading = false,
-                        error = null
-                    )
+                            list = (currentList + newItems),
+                            isLoading = false,
+                            error = null
+                        )
                     }
                 }
+
                 is Resource.Error -> {
                     _uiState.update {
                         it.copy(
@@ -70,10 +72,11 @@ class DiscoveryPageViewModel @Inject constructor(
                         )
                     }
                 }
+
                 is Resource.Loading -> {
-                     _uiState.update {
-                         it.copy(isLoading = true)
-                     }
+                    _uiState.update {
+                        it.copy(isLoading = true)
+                    }
                 }
             }
             isLoadingMore = false
@@ -98,7 +101,7 @@ class DiscoveryPageViewModel @Inject constructor(
             val item = currentList[index]
             val newIsLiked = !item.isLikedByMe
             val newLikeCount = if (newIsLiked) item.likeCount + 1 else item.likeCount - 1
-            
+
             // Optimistic Update
             currentList[index] = item.copy(isLikedByMe = newIsLiked, likeCount = newLikeCount)
             _uiState.update { it.copy(list = currentList) }
@@ -119,4 +122,46 @@ class DiscoveryPageViewModel @Inject constructor(
             }
         }
     }
+    var currentDecisionId = 0
+    fun getComments(decisionId: Int) {
+        currentDecisionId = decisionId
+        viewModelScope.launch(Dispatchers.IO) {
+            when (val result = repository.getComments(decisionId)) {
+                is Resource.Success -> {
+                    val comments = result.data.data ?: emptyList()
+                    _uiState.update { it.copy(selectedComments = comments) }
+                }
+                is Resource.Error -> {
+                        // Hata yönetimi eklenebilir
+                }
+                is Resource.Loading -> {
+                        // Loading yönetimi eklenebilir
+                }
+            }
+        }
+    }
+
+    fun addComment(content: String) {
+        if (currentDecisionId == 0) return
+
+        viewModelScope.launch(Dispatchers.IO) {
+            val request = CommentRequest(decisionId = currentDecisionId, content = content)
+            when (val result = repository.addComment(request)) {
+                is Resource.Success -> {
+                    getComments(currentDecisionId)
+                    val currentList = _uiState.value.list.toMutableList()
+                    val index = currentList.indexOfFirst { it.decisionId == currentDecisionId }
+                    if (index != -1) {
+                        val item = currentList[index]
+                        currentList[index] = item.copy(commentCount = item.commentCount + 1)
+                        _uiState.update { it.copy(list = currentList) }
+                    }
+                }
+                is Resource.Error -> {
+                        // Hata mesajı gösterilebilir
+                }
+                is Resource.Loading -> {}
+                }
+            }
+        }
 }

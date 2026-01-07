@@ -3,7 +3,10 @@ package com.hakanemik.ortakakil.retrofit
 import com.hakanemik.ortakakil.entity.AiRequest
 import com.hakanemik.ortakakil.entity.AiResponse
 import com.hakanemik.ortakakil.entity.ApiResponse
+import com.hakanemik.ortakakil.entity.CommentRequest
+import com.hakanemik.ortakakil.entity.CommentResponse
 import com.hakanemik.ortakakil.entity.DiscoveryResponse
+import com.hakanemik.ortakakil.entity.HistoryResponse
 import com.hakanemik.ortakakil.entity.LoginRequest
 import com.hakanemik.ortakakil.entity.LoginResponse
 import com.hakanemik.ortakakil.entity.RegisterRequest
@@ -37,6 +40,12 @@ interface OrtakAkilDaoInterface {
     suspend fun loadFeed( @Query("page") page: Int):ApiResponse<List<DiscoveryResponse>>
     @POST("/api/Discover/like/{id}")
     suspend fun likeDecision(@Path("id") id: Int): ApiResponse<Boolean>
+    @POST("/api/Discover/add-comment")
+    suspend fun addComment(@Body commentRequest: CommentRequest): ApiResponse<Boolean>
+    @GET("/api/Discover/get-comments/{decisionId}")
+    suspend fun getComments(@Path("decisionId") decisionId: Int): ApiResponse<List<CommentResponse>>
+    @GET("/api/Discover/get-history")
+    suspend fun getHistory(@Query("pageNumber") pageNumber: Int): ApiResponse<List<HistoryResponse>>
     @POST("/api/Auth/logout")
     suspend fun logout(@Body body: Map<String,String>):ApiResponse<Boolean>
 }

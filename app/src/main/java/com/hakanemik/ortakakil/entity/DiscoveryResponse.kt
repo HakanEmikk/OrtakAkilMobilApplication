@@ -14,7 +14,7 @@ data class DiscoveryResponse(
     @SerializedName("userFullName")
     val userFullName:String,
     @SerializedName("userPhotoUrl")
-    val userPhotoUrl:String,
+    val userPhotoUrl:String? = null,
     @SerializedName("likeCount")
     val likeCount:Int,
     @SerializedName("commentCount")

@@ -15,9 +15,14 @@ object TimeUtils {
             Instant.parse(iso).toEpochMilli()
         } catch (_: Exception) {
             // Bazı backend’ler Z koymaz ama offset içerir: 2025-12-11T14:47:31.9122069+03:00
-            OffsetDateTime.parse(iso, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
-                .toInstant()
-                .toEpochMilli()
+            try {
+                OffsetDateTime.parse(iso, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+                    .toInstant()
+                    .toEpochMilli()
+            } catch (_: Exception) {
+                // Eğer offset de yoksa (örn: 2026-01-03T11:53:33.3916316), UTC kabul edelim
+                java.time.LocalDateTime.parse(iso).toInstant(java.time.ZoneOffset.UTC).toEpochMilli()
+            }
         }
     }
 

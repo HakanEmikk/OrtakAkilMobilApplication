@@ -13,6 +13,9 @@ import com.hakanemik.ortakakil.entity.Resource
 import com.hakanemik.ortakakil.entity.ShareRequest
 import com.hakanemik.ortakakil.entity.User
 import com.hakanemik.ortakakil.retrofit.OrtakAkilDaoInterface
+import com.hakanemik.ortakakil.entity.CommentRequest
+import com.hakanemik.ortakakil.entity.CommentResponse
+import com.hakanemik.ortakakil.entity.HistoryResponse
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -239,6 +242,59 @@ class OrtakAkilDaoRepository @Inject constructor(
                 null
             }
             val userFriendlyMessage = backendMessage ?: "Bir hata oluştu"
+            Resource.Error(userFriendlyMessage, e.code())
+        } catch (e: Exception) {
+            Resource.Error("Beklenmeyen hata: ${e.localizedMessage}")
+        }
+    }
+    suspend fun addComment(commentRequest: CommentRequest): Resource<ApiResponse<Boolean>> {
+        return try {
+            val response = ortakAkilDaoInterface.addComment(commentRequest)
+            Resource.Success(response)
+        } catch (e: retrofit2.HttpException) {
+            val errorBody = e.response()?.errorBody()?.string()
+            val backendMessage = try {
+                Gson().fromJson(errorBody, ErrorResponse::class.java).message
+            } catch (ex: Exception) {
+                null
+            }
+            val userFriendlyMessage = backendMessage ?: "Bir hata oluştu"
+            Resource.Error(userFriendlyMessage, e.code())
+        } catch (e: Exception) {
+            Resource.Error("Beklenmeyen hata: ${e.localizedMessage}")
+        }
+    }
+
+    suspend fun getComments(decisionId: Int): Resource<ApiResponse<List<CommentResponse>>> {
+        return try {
+            val response = ortakAkilDaoInterface.getComments(decisionId)
+            Resource.Success(response)
+        } catch (e: retrofit2.HttpException) {
+            val errorBody = e.response()?.errorBody()?.string()
+            val backendMessage = try {
+                Gson().fromJson(errorBody, ErrorResponse::class.java).message
+            } catch (ex: Exception) {
+                null
+            }
+            val userFriendlyMessage = backendMessage ?: "Yorumlar yüklenirken hata oluştu"
+            Resource.Error(userFriendlyMessage, e.code())
+        } catch (e: Exception) {
+            Resource.Error("Beklenmeyen hata: ${e.localizedMessage}")
+        }
+    }
+
+    suspend fun getHistory(page: Int): Resource<ApiResponse<List<HistoryResponse>>> {
+        return try {
+            val response = ortakAkilDaoInterface.getHistory(page)
+            Resource.Success(response)
+        } catch (e: retrofit2.HttpException) {
+            val errorBody = e.response()?.errorBody()?.string()
+            val backendMessage = try {
+                Gson().fromJson(errorBody, ErrorResponse::class.java).message
+            } catch (ex: Exception) {
+                null
+            }
+            val userFriendlyMessage = backendMessage ?: "Geçmiş yüklenirken hata oluştu"
             Resource.Error(userFriendlyMessage, e.code())
         } catch (e: Exception) {
             Resource.Error("Beklenmeyen hata: ${e.localizedMessage}")

@@ -57,7 +57,7 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(libs.androidx.ui.test.junit4)
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.5.0")
     debugImplementation1(libs.androidx.ui.tooling)
     debugImplementation1(libs.androidx.ui.test.manifest)
     debugImplementation1(libs.leakcanary.android)
@@ -84,5 +84,6 @@ dependencies {
     implementation (libs.coil.compose)
     implementation("com.google.firebase:firebase-appcheck-playintegrity")
     implementation("com.google.firebase:firebase-appcheck:17.1.2")
+    implementation("androidx.core:core-splashscreen:1.0.1")
     kapt(libs.hilt.compiler)
 }

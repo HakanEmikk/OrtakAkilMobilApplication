@@ -4,7 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hakanemik.ortakakil.entity.CommentResponse
 import com.hakanemik.ortakakil.entity.Resource
+import com.hakanemik.ortakakil.entity.ShareRequest
+import com.hakanemik.ortakakil.entity.AnswerUiEvent
 import com.hakanemik.ortakakil.repo.OrtakAkilDaoRepository
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,6 +37,31 @@ class HistoryDetailViewModel @Inject constructor(
                 is Resource.Loading -> {
                     // Handle loading if needed
                 }
+            }
+        }
+    }
+    private val _shareNote = MutableStateFlow("")
+    val shareNote: StateFlow<String> = _shareNote.asStateFlow()
+
+    private val _uiEvent = Channel<AnswerUiEvent>()
+    val uiEvent = _uiEvent.receiveAsFlow()
+
+    fun onShareNoteChange(value: String) {
+        _shareNote.value = value
+    }
+
+    fun shareHistoryItem(decisionId: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val shareRequest = ShareRequest(decisionId, _shareNote.value)
+            val response = repository.shareAnswer(shareRequest)
+            when (response) {
+                is Resource.Success -> {
+                    _uiEvent.send(AnswerUiEvent.ShareSuccess)
+                }
+                is Resource.Error -> {
+                    _uiEvent.send(AnswerUiEvent.ShareError)
+                }
+                else -> {}
             }
         }
     }

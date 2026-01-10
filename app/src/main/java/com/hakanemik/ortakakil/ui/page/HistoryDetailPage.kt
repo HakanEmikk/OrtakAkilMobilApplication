@@ -49,20 +49,41 @@ import androidx.compose.runtime.LaunchedEffect
 import com.hakanemik.ortakakil.viewmodel.HistoryDetailViewModel
 import com.hakanemik.ortakakil.ui.utils.CommentsBottomSheet
 import com.hakanemik.ortakakil.ui.utils.DateUtils.calculateTimeAgo
+import com.hakanemik.ortakakil.ui.utils.AnswerShareSheet
+import com.hakanemik.ortakakil.entity.AnswerUiEvent
+import com.hakanemik.ortakakil.entity.Enum.SnackbarType
 
 @Composable
 fun HistoryDetailPage(
     navController: NavHostController,
     item: HistoryResponse,
+    onShowSnackbar: (String, SnackbarType) -> Unit,
     viewModel: HistoryDetailViewModel = hiltViewModel()
 ) {
     val comments by viewModel.comments.collectAsState()
+    val shareNote by viewModel.shareNote.collectAsState()
     
     LaunchedEffect(item.decisionId) {
         viewModel.getComments(item.decisionId)
     }
 
     var showComments by remember { mutableStateOf(false) }
+    var showShareSheet by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
+                is AnswerUiEvent.ShareSuccess -> {
+                    showShareSheet = false
+                    onShowSnackbar("Başarıyla paylaşıldı", SnackbarType.SUCCESS)
+                }
+                is AnswerUiEvent.ShareError -> {
+                    onShowSnackbar("Paylaşılırken bir hata oluştu", SnackbarType.ERROR)
+                }
+            }
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -153,16 +174,29 @@ fun HistoryDetailPage(
                 item {
                     Spacer(modifier = Modifier.height(32.dp))
                     Button(
-                        onClick = { /* Paylaşma işlemini tetikle */ },
+                        onClick = { showShareSheet = true },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(56.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.primary_purple)),
-                        shape = RoundedCornerShape(16.dp)
+                            .height(58.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = colorResource(id = R.color.primary_purple)
+                        ),
+                        shape = RoundedCornerShape(16.dp),
+                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
                     ) {
-                        Icon(Icons.Default.Share, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Keşfet'te Paylaş", fontWeight = FontWeight.Bold)
+                        Icon(
+                            painter = painterResource(id = R.drawable.world),
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp),
+                            tint = Color.White
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            "Keşfet'te Paylaş",
+                            color = Color.White,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }
@@ -212,6 +246,15 @@ fun HistoryDetailPage(
             comments = comments,
             onSendComment = {},
             isHistoryPage = true
+        )
+    }
+
+    if (showShareSheet) {
+        AnswerShareSheet(
+            onDismiss = { showShareSheet = false },
+            value = shareNote,
+            onValueChange = viewModel::onShareNoteChange,
+            onClick = { viewModel.shareHistoryItem(item.decisionId) }
         )
     }
 }

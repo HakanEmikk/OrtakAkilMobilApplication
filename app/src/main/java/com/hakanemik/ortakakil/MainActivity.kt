@@ -6,6 +6,8 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -69,6 +71,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Install splash screen
+        installSplashScreen()
+        enableEdgeToEdge()
         lockOrientationForPhones()
 
         setContent {
@@ -211,7 +216,7 @@ fun PageSelect(
                     )
                     mainActivityViewModel.showBottomBar()
                 }
-                HistoryPage(navController)
+                HistoryPage(navController, onShowSnackbar = { msg, type -> mainActivityViewModel.showSnackbar(msg, type)})
             }
             composable(route= Screen.Onboarding.route){
                 LaunchedEffect(Unit) {
@@ -351,7 +356,7 @@ fun PageSelect(
                         )
                         mainActivityViewModel.hideBottomBar()
                     }
-                    HistoryDetailPage(navController,historyItem)
+                    HistoryDetailPage(navController, historyItem, onShowSnackbar = { msg, type -> mainActivityViewModel.showSnackbar(msg, type) })
                 }
             }
         }

@@ -127,11 +127,11 @@ class LoginPageViewModel @Inject constructor(
                 ) }
             } catch (e: GetCredentialException) {
                 _uiState.update { it.copy(
-                    loginState = Resource.Error(e.message ?: "Google giriş iptal edildi.")
+                    loginState = Resource.Error( "Google ile giriş iptal edildi.")
                 ) }
             } catch (e: Exception) {
                 _uiState.update { it.copy(
-                    loginState = Resource.Error(e.message ?: "Google giriş başarısız.")
+                    loginState = Resource.Error( "Google giriş başarısız. Tekrar deneyin.")
                 ) }
             }
         }

@@ -24,6 +24,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.hakanemik.ortakakil.R
 import com.hakanemik.ortakakil.entity.Enum.SnackbarType
+import com.hakanemik.ortakakil.entity.Resource
 import com.hakanemik.ortakakil.ui.utils.OnboardingScreen1
 import com.hakanemik.ortakakil.ui.utils.OnboardingScreen2
 import com.hakanemik.ortakakil.ui.utils.OnboardingScreen3
@@ -80,6 +81,7 @@ fun OnboardingPage(
                 onGoogleSignIn =  {viewModel.loginWithGoogle(context)} ,
                 onRegisterClick = { navController.navigate("register_page") },
                 onBack = { currentPage-- },
+                isLoading = uiState.loginState is Resource.Loading
             )
         }
 

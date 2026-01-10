@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -25,7 +26,8 @@ fun OnboardingScreen3(
     onLoginClick: () -> Unit,
     onGoogleSignIn: () -> Unit,
     onRegisterClick: () -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    isLoading: Boolean = false
 ) {
     Column(
         modifier = Modifier
@@ -81,6 +83,10 @@ fun OnboardingScreen3(
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text("Google ile Devam Et", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                if (isLoading) {
+                    Spacer(modifier = Modifier.width(12.dp))
+                    CircularProgressIndicator(color = colorResource(R.color.primary_purple), strokeWidth = 3.dp, modifier = Modifier.size(24.dp))
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))

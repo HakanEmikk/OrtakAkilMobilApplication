@@ -6,7 +6,11 @@ import com.hakanemik.ortakakil.entity.HistoryResponse
 import com.hakanemik.ortakakil.entity.HistoryUiState
 import com.hakanemik.ortakakil.entity.CommentResponse
 import com.hakanemik.ortakakil.entity.Resource
+import com.hakanemik.ortakakil.entity.ShareRequest
+import com.hakanemik.ortakakil.entity.AnswerUiEvent
 import com.hakanemik.ortakakil.repo.OrtakAkilDaoRepository
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -108,6 +112,33 @@ class HistoryPageViewModel @Inject constructor(
                 is Resource.Loading -> {
                     // Handle loading if needed
                 }
+            }
+        }
+    }
+
+    private val _uiEvent = Channel<AnswerUiEvent>()
+    val uiEvent = _uiEvent.receiveAsFlow()
+
+    fun onShareNoteChange(value: String) {
+        _uiState.update { it.copy(shareNote = value) }
+    }
+
+    fun shareHistoryItem(decisionId: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val shareRequest = ShareRequest(decisionId, _uiState.value.shareNote)
+            val response = repository.shareAnswer(shareRequest)
+            when (response) {
+                is Resource.Success -> {
+                    _uiEvent.send(AnswerUiEvent.ShareSuccess)
+                    // Update the list locally to reflect the change if needed, or refresh
+                    refreshHistory()
+                }
+
+                is Resource.Error -> {
+                    _uiEvent.send(AnswerUiEvent.ShareError)
+                }
+
+                else -> {}
             }
         }
     }

@@ -31,17 +31,37 @@ import com.hakanemik.ortakakil.entity.HistoryResponse
 import com.hakanemik.ortakakil.ui.navigation.Screen
 import com.hakanemik.ortakakil.ui.utils.DateUtils.calculateTimeAgo
 import com.hakanemik.ortakakil.ui.utils.CommentsBottomSheet
+import com.hakanemik.ortakakil.ui.utils.AnswerShareSheet
+import com.hakanemik.ortakakil.entity.AnswerUiEvent
+import com.hakanemik.ortakakil.entity.Enum.SnackbarType
 import com.hakanemik.ortakakil.viewmodel.HistoryPageViewModel
 
 
 @Composable
 fun HistoryPage(
     navController: NavController,
+    onShowSnackbar: (String, SnackbarType) -> Unit,
     viewModel: HistoryPageViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val comments by viewModel.selectedComments.collectAsStateWithLifecycle()
     var showComments by remember { mutableStateOf(false) }
+    var showShareSheet by remember { mutableStateOf(false) }
+    var selectedDecisionId by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
+                is AnswerUiEvent.ShareSuccess -> {
+                    showShareSheet = false
+                    onShowSnackbar("Başarıyla paylaşıldı", SnackbarType.SUCCESS)
+                }
+                is AnswerUiEvent.ShareError -> {
+                    onShowSnackbar("Paylaşılırken bir hata oluştu", SnackbarType.ERROR)
+                }
+            }
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.refreshHistory()
@@ -71,7 +91,8 @@ fun HistoryPage(
                 HistoryCard(
                     item = item,
                     onShareClick = {
-                        // Paylaşma BottomSheet'ini aç veya API isteği at
+                        selectedDecisionId = item.decisionId
+                        showShareSheet = true
                     },
                     onCardClick = {
                         val gson = Gson()
@@ -94,6 +115,15 @@ fun HistoryPage(
             comments = comments,
             onSendComment = {},
             isHistoryPage = true
+        )
+    }
+
+    if (showShareSheet) {
+        AnswerShareSheet(
+            onDismiss = { showShareSheet = false },
+            value = uiState.shareNote,
+            onValueChange = viewModel::onShareNoteChange,
+            onClick = { viewModel.shareHistoryItem(selectedDecisionId) }
         )
     }
 }
@@ -229,20 +259,22 @@ fun HistoryCard(
                         Button(
                             onClick = { onShareClick() },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = colorResource(R.color.purple_overlay_20),
-                                contentColor = colorResource(R.color.primary_purple)
+                                containerColor = colorResource(id = R.color.primary_purple),
+                                contentColor = Color.White
                             ),
-                            shape = RoundedCornerShape(8.dp),
+                            shape = RoundedCornerShape(12.dp),
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-                            modifier = Modifier.height(32.dp)
+                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp),
+                            modifier = Modifier.height(36.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Outlined.Share,
+                                painter = painterResource(id = R.drawable.world),
                                 contentDescription = null,
-                                modifier = Modifier.size(14.dp)
+                                modifier = Modifier.size(16.dp),
+                                tint = Color.White
                             )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text("Keşfet'te Paylaş", fontSize = 12.sp)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Keşfet'te Paylaş", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                         }
                     }
                 }

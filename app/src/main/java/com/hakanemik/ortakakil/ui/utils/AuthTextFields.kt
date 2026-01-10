@@ -11,6 +11,12 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.material.icons.Icons
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -26,6 +32,8 @@ fun AuthTextFields(
     deviceSize: DeviceSize,
     isPassword: Boolean = false
 ) {
+    var passwordVisible by remember { mutableStateOf(false) }
+
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = label,
@@ -53,7 +61,7 @@ fun AuthTextFields(
             TextField(
                 value = value,
                 onValueChange = onValueChange,
-                visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
+                visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
                 singleLine = true,
                 modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(15.dp)),
                 colors = TextFieldDefaults.colors(
@@ -65,7 +73,21 @@ fun AuthTextFields(
                     focusedTextColor = Color.White,
                     unfocusedTextColor = Color.White,
                 ),
-                shape = RoundedCornerShape(15.dp)
+                shape = RoundedCornerShape(15.dp),
+                trailingIcon = {
+                    if (isPassword) {
+                        val image = if (passwordVisible)
+                            painterResource(id= R.drawable.visibility)
+                        else
+                            painterResource(id= R.drawable.visibility_off)
+
+                        val description = if (passwordVisible) "Hide password" else "Show password"
+
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Icon(image, contentDescription = description, tint = Color.Gray, modifier = Modifier.size(24.dp))
+                        }
+                    }
+                }
             )
         }
     }

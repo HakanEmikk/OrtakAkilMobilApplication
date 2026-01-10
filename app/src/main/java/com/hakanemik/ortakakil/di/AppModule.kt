@@ -42,7 +42,7 @@ object AppModule {
         credentialManager: CredentialManager
     ):GoogleAuthHelper{
         val serverClientId = context.getString(R.string.google_server_client_id)
-        return GoogleAuthHelper(context,credentialManager,serverClientId)
+        return GoogleAuthHelper(credentialManager,serverClientId)
     }
 
     @Provides

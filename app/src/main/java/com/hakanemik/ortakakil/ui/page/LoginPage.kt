@@ -1,6 +1,7 @@
 package com.hakanemik.ortakakil.ui.page
 
 
+import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
@@ -17,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -46,6 +48,7 @@ fun LoginPage(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val deviceSize = currentDeviceSizeHelper()
+    val context = LocalContext.current
 
     Box(modifier = Modifier
         .fillMaxSize()
@@ -58,7 +61,7 @@ fun LoginPage(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            LoginContent(deviceSize, uiState, viewModel, navController)
+            LoginContent(deviceSize, uiState, viewModel, navController,context)
         }
     }
 
@@ -71,20 +74,17 @@ fun LoginContent(
     deviceSize: DeviceSize,
     uiState: LoginUiState,
     viewModel: LoginPageViewModel,
-    navController: NavController
+    navController: NavController,
+    context: Context
 ) {
-    Spacer(modifier = Modifier.height(80.dp.responsive(80.dp, 60.dp, 40.dp, deviceSize)))
+    Spacer(modifier = Modifier.height(20.dp.responsive(20.dp, 150.dp, 10.dp, deviceSize)))
 
     // Logo Area
     Box(contentAlignment = Alignment.Center) {
-        // Soft Glow behind logo
-        Box(modifier = Modifier.size(140.dp).background(
-            Brush.radialGradient(listOf(colorResource(R.color.primary_purple).copy(0.15f), Color.Transparent))
-        ))
         Image(
-            painter = painterResource(id = R.drawable.ortak_akil_logo),
+            painter = painterResource(id = R.drawable.logo),
             contentDescription = "Logo",
-            modifier = Modifier.size(140.dp).clip(RoundedCornerShape(36.dp))
+            modifier = Modifier.size(180.dp).clip(RoundedCornerShape(36.dp))
         )
     }
 
@@ -116,7 +116,7 @@ fun LoginContent(
         onRememberMeChange = viewModel::onRememberMeChange,
         onLogin = viewModel::login,
         onNavigateToRegister = { navController.navigate("register_page") },
-        onGoogleSignIn = viewModel::loginWithGoogle
+        onGoogleSignIn = {viewModel.loginWithGoogle(context)}
     )
 }
 

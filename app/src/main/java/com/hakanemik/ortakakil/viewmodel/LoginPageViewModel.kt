@@ -1,5 +1,6 @@
 package com.hakanemik.ortakakil.viewmodel
 
+import android.content.Context
 import android.os.Build
 import android.util.Patterns
 import androidx.annotation.RequiresApi
@@ -103,12 +104,12 @@ class LoginPageViewModel @Inject constructor(
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun loginWithGoogle() {
+    fun loginWithGoogle(context: Context) {
         viewModelScope.launch {
             _uiState.update { it.copy(loginState = Resource.Loading) }
 
             try {
-                val idToken = googleAuthHelper.getIdToken()
+                val idToken = googleAuthHelper.getIdToken(context)
                 when (val result = repository.googleWithLogin(idToken)) {
                     is Resource.Success -> {
                         val data = result.data.data

@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -39,6 +40,7 @@ fun OnboardingPage(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var currentPage by remember { mutableStateOf(0) }
     val totalPages = 3
+    val context = LocalContext.current
 
     val gradient = Brush.verticalGradient(
         colors = listOf(
@@ -75,9 +77,9 @@ fun OnboardingPage(
         ) {
             OnboardingScreen3(
                 onLoginClick = { navController.navigate("login_page") },
-                onGoogleSignIn =  viewModel::loginWithGoogle ,
+                onGoogleSignIn =  {viewModel.loginWithGoogle(context)} ,
                 onRegisterClick = { navController.navigate("register_page") },
-                onBack = { currentPage-- }
+                onBack = { currentPage-- },
             )
         }
 

@@ -8,12 +8,11 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 
 
 class GoogleAuthHelper(
-    private val context: Context,
     private val credentialManager: CredentialManager,
     private val serverClientId: String
 ) {
 
-    suspend fun getIdToken():String{
+    suspend fun getIdToken(context: Context):String{
         val googleIdOption = GetGoogleIdOption.Builder()
             .setServerClientId(serverClientId)
             .setFilterByAuthorizedAccounts(false)
@@ -24,8 +23,19 @@ class GoogleAuthHelper(
             .addCredentialOption(googleIdOption)
             .build()
 
-        val result = credentialManager.getCredential(context, request)
+        val activityContext = context.findActivity()
+            ?: throw IllegalStateException("Google Giriş için Activity Context gereklidir.")
+
+        val result = credentialManager.getCredential(activityContext, request)
         val googleCred = GoogleIdTokenCredential.createFrom(result.credential.data)
         return  googleCred.idToken
+    }
+    private fun Context.findActivity(): android.app.Activity? {
+        var context = this
+        while (context is android.content.ContextWrapper) {
+            if (context is android.app.Activity) return context
+            context = context.baseContext
+        }
+        return null
     }
 }

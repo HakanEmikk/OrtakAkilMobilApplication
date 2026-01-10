@@ -1,5 +1,6 @@
 package com.hakanemik.ortakakil.viewmodel
 
+import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.credentials.exceptions.GetCredentialException
@@ -34,12 +35,12 @@ class OnboardingPageViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(OnboardingState())
     val uiState: StateFlow<OnboardingState> = _uiState.asStateFlow()
     @RequiresApi(Build.VERSION_CODES.O)
-    fun loginWithGoogle() {
+    fun loginWithGoogle(context: Context) {
         viewModelScope.launch {
             _uiState.update { it.copy(loginState = Resource.Loading) }
 
             try {
-                val idToken = googleAuthHelper.getIdToken()
+                val idToken = googleAuthHelper.getIdToken(context)
                 when (val result = repository.googleWithLogin(idToken)) {
                     is Resource.Success -> {
                         val data = result.data.data

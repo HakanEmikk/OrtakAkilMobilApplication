@@ -36,6 +36,7 @@ class OrtakAkilDaoRepository @Inject constructor(
             }
             val userFriendlyMessage = when (backendMessage) {
                 "Email or password is incorrect." -> "E-posta veya şifre hatalı"
+                "User not found." -> "E-posta veya şifre hatalı"
                 "This account uses Google sign-in. Please login with Google." -> "Bu hesap Google oturum açma özelliğini kullanır. Lütfen Google ile giriş yapın."
                 else -> "Bir hata oluştu, lütfen tekrar deneyin"
             }
@@ -44,7 +45,7 @@ class OrtakAkilDaoRepository @Inject constructor(
             Resource.Error("İnternet bağlantınızı kontrol edin")
         }
         catch (e:Exception){
-            Resource.Error("Beklenmeyen hata: ${e.localizedMessage}")
+            Resource.Error("Beklenmeyen hata: ")
         }
     }
     suspend fun googleWithLogin(idToken:String): Resource<ApiResponse<LoginResponse>> {
@@ -73,7 +74,7 @@ class OrtakAkilDaoRepository @Inject constructor(
             Resource.Error("İnternet bağlantınızı kontrol edin")
         }
         catch (e:Exception){
-            Resource.Error("Beklenmeyen hata: ${e.localizedMessage}")
+            Resource.Error("Beklenmeyen hata: ")
         }
     }
     suspend fun register(registerRequest: RegisterRequest):Resource<ApiResponse<User>>{
@@ -96,7 +97,7 @@ class OrtakAkilDaoRepository @Inject constructor(
             Resource.Error("İnternet bağlantınızı kontrol edin")
         }
         catch (e:Exception){
-            Resource.Error("Beklenmeyen hata: ${e.localizedMessage}")
+            Resource.Error("Beklenmeyen hata: ")
         }
     }
 
@@ -118,7 +119,7 @@ class OrtakAkilDaoRepository @Inject constructor(
             Resource.Error("İnternet bağlantınızı kontrol edin")
         }
         catch (e:Exception){
-            Resource.Error("Beklenmeyen hata: ${e.localizedMessage}")
+            Resource.Error("Beklenmeyen hata: ")
         }
     }
 
@@ -140,7 +141,7 @@ class OrtakAkilDaoRepository @Inject constructor(
             Resource.Error("İnternet bağlantınızı kontrol edin")
         }
         catch (e:Exception){
-            Resource.Error("Beklenmeyen hata: ${e.localizedMessage}")
+            Resource.Error("Beklenmeyen hata:")
         }
     }
     suspend fun updateProfile(user: User):Resource<ApiResponse<User>>{
@@ -161,7 +162,7 @@ class OrtakAkilDaoRepository @Inject constructor(
             Resource.Error("İnternet bağlantınızı kontrol edin")
         }
         catch (e:Exception){
-            Resource.Error("Beklenmeyen hata: ${e.localizedMessage}")
+            Resource.Error("Beklenmeyen hata: ")
         }
 
     }
@@ -183,7 +184,7 @@ class OrtakAkilDaoRepository @Inject constructor(
             Resource.Error("İnternet bağlantınızı kontrol edin")
         }
         catch (e:Exception){
-            Resource.Error("Beklenmeyen hata: ${e.localizedMessage}")
+            Resource.Error("Beklenmeyen hata: ")
         }
     }
 
@@ -205,7 +206,7 @@ class OrtakAkilDaoRepository @Inject constructor(
         } catch (e: java.net.UnknownHostException) {
             Resource.Error("İnternet bağlantınızı kontrol edin")
         } catch (e: Exception) {
-            Resource.Error("Beklenmeyen hata: ${e.localizedMessage}")
+            Resource.Error("Beklenmeyen hata: ")
         }
     }
 
@@ -226,7 +227,7 @@ class OrtakAkilDaoRepository @Inject constructor(
         } catch (e: java.net.UnknownHostException) {
             Resource.Error("İnternet bağlantınızı kontrol edin")
         } catch (e: Exception) {
-            Resource.Error("Beklenmeyen hata: ${e.localizedMessage}")
+            Resource.Error("Beklenmeyen hata: ")
         }
     }
 
@@ -244,7 +245,7 @@ class OrtakAkilDaoRepository @Inject constructor(
             val userFriendlyMessage = backendMessage ?: "Bir hata oluştu"
             Resource.Error(userFriendlyMessage, e.code())
         } catch (e: Exception) {
-            Resource.Error("Beklenmeyen hata: ${e.localizedMessage}")
+            Resource.Error("Beklenmeyen hata:")
         }
     }
     suspend fun addComment(commentRequest: CommentRequest): Resource<ApiResponse<Boolean>> {
@@ -261,7 +262,7 @@ class OrtakAkilDaoRepository @Inject constructor(
             val userFriendlyMessage = backendMessage ?: "Bir hata oluştu"
             Resource.Error(userFriendlyMessage, e.code())
         } catch (e: Exception) {
-            Resource.Error("Beklenmeyen hata: ${e.localizedMessage}")
+            Resource.Error("Beklenmeyen hata: ")
         }
     }
 
@@ -279,7 +280,7 @@ class OrtakAkilDaoRepository @Inject constructor(
             val userFriendlyMessage = backendMessage ?: "Yorumlar yüklenirken hata oluştu"
             Resource.Error(userFriendlyMessage, e.code())
         } catch (e: Exception) {
-            Resource.Error("Beklenmeyen hata: ${e.localizedMessage}")
+            Resource.Error("Beklenmeyen hata: ")
         }
     }
 
@@ -297,7 +298,7 @@ class OrtakAkilDaoRepository @Inject constructor(
             val userFriendlyMessage = backendMessage ?: "Geçmiş yüklenirken hata oluştu"
             Resource.Error(userFriendlyMessage, e.code())
         } catch (e: Exception) {
-            Resource.Error("Beklenmeyen hata: ${e.localizedMessage}")
+            Resource.Error("Beklenmeyen hata:")
         }
     }
 }

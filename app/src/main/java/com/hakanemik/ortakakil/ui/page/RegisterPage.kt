@@ -70,18 +70,15 @@ fun RegisterContent(
     viewModel: RegisterPageViewModel,
     navController: NavController
 ) {
-    Spacer(modifier = Modifier.height(60.dp.responsive(60.dp, 40.dp, 30.dp, deviceSize)))
+    Spacer(modifier = Modifier.height(15.dp.responsive(15.dp, 10.dp, 12.dp, deviceSize)))
 
     // Logo Area with Glow
     Box(contentAlignment = Alignment.Center) {
-        Box(modifier = Modifier.size(120.dp).background(
-            Brush.radialGradient(listOf(colorResource(R.color.primary_purple).copy(0.12f), Color.Transparent))
-        ))
         Image(
-            painter = painterResource(id = R.drawable.ortak_akil_logo),
+            painter = painterResource(id = R.drawable.logo),
             contentDescription = "logo",
             modifier = Modifier
-                .size(100.dp.responsive(100.dp, 120.dp, 110.dp, deviceSize))
+                .size(140.dp.responsive(140.dp, 160.dp, 150.dp, deviceSize))
                 .clip(RoundedCornerShape(20.dp))
         )
     }

@@ -30,9 +30,9 @@ fun OnboardingScreen1(onNext: () -> Unit) {
         Spacer(modifier = Modifier.height(32.dp))
 
         Image(
-            painter = painterResource(id = R.drawable.ortak_akil_logo), // Kendi logon
+            painter = painterResource(id = R.drawable.logo), // Kendi logon
             contentDescription = "Ortak Akıl Logo",
-            modifier = Modifier.size(180.dp).clip(
+            modifier = Modifier.size(240.dp).clip(
                 RoundedCornerShape(36.dp)
         )
         )

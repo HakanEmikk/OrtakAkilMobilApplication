@@ -30,7 +30,7 @@ fun OnboardingScreen3(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp, vertical = 48.dp),
+            .padding(horizontal = 24.dp, vertical = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
@@ -50,14 +50,14 @@ fun OnboardingScreen3(
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = "Hemen Katıl",
-                fontSize = 30.sp,
-                fontWeight = FontWeight.ExtraBold,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
                 color = Color.White,
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "Topluluğa katılarak akıllı kararlar almaya başla!",
+                text = "Katıl ve akıllı kararlar almaya başla!",
                 fontSize = 16.sp,
                 color = colorResource(id = R.color.text_muted),
                 textAlign = TextAlign.Center,

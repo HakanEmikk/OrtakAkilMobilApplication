@@ -22,7 +22,7 @@ fun OnboardingScreen2(onNext: () -> Unit, onBack: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp, vertical = 48.dp),
+            .padding(horizontal = 24.dp, vertical = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
@@ -41,7 +41,7 @@ fun OnboardingScreen2(onNext: () -> Unit, onBack: () -> Unit) {
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = "Akıllı Algoritma Destekli Kararlar",
+                text = "Yapay Zeka Destekli Kararlar",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = colorResource(id = R.color.white),
@@ -49,7 +49,7 @@ fun OnboardingScreen2(onNext: () -> Unit, onBack: () -> Unit) {
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "Algoritmamız, sorularına en doğru ve tarafsız cevapları bulmana yardımcı olur.",
+                text = "Yapay zekamız sorularına en doğru ve tarafsız cevapları bulmana yardımcı olur.",
                 fontSize = 16.sp,
                 color = colorResource(id = R.color.text_muted),
                 textAlign = TextAlign.Center,

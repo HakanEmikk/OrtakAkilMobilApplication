@@ -74,6 +74,7 @@ class AnswerPageViewModel @Inject constructor(
             val response = repository.shareAnswer(shareRequest)
             when (response) {
                 is Resource.Success -> {
+                    _uiState.update { it.copy(isShared = true) }
                     _uiEvent.send(AnswerUiEvent.ShareSuccess)
                 }
 

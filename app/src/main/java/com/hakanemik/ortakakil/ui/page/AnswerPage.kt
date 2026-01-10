@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -116,24 +117,12 @@ fun AnswerPage(
                             .fillMaxWidth()
                             .padding(24.dp)
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.pencil), // AI Yıldızları/Işıltısı ikonu daha iyi olur
-                                contentDescription = null,
-                                tint = colorResource(id = R.color.primary_purple),
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Text(
-                                "Ortak Akıl'ın Önerisi",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                        }
-
+                        Text(
+                            "Ortak Akıl'ın Önerisi",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
                         Spacer(modifier = Modifier.height(20.dp))
 
                         if (uiState.isLoading) {
@@ -189,41 +178,76 @@ fun AnswerPage(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            Button(
-                onClick = { showSheet = true },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(58.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = colorResource(id = R.color.primary_purple)
-                ),
-                shape = RoundedCornerShape(16.dp),
-                elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.world),
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    tint = Color.White
-                )
-                Spacer(modifier = Modifier.width(12.dp))
+            if (uiState.isShared) {
+                // Paylaşılmış durumu göster
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .background(
+                            colorResource(id = R.color.success).copy(alpha = 0.1f),
+                            RoundedCornerShape(12.dp)
+                        )
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .background(colorResource(id = R.color.success), CircleShape)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = "Yayında",
+                        fontSize = 14.sp,
+                        color = colorResource(id = R.color.success),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    "Keşfet'te Paylaş",
-                    color = Color.White,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
+                    text = "Bu karar Keşfet sayfasında paylaşıldı.",
+                    fontSize = 12.sp,
+                    textAlign = TextAlign.Center,
+                    color = colorResource(id = R.color.text_muted),
+                    modifier = Modifier.padding(horizontal = 24.dp)
+                )
+            } else {
+                // Paylaşım butonu
+                Button(
+                    onClick = { showSheet = true },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(58.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colorResource(id = R.color.primary_purple)
+                    ),
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.world),
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = Color.White
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        "Keşfet'te Paylaş",
+                        color = Color.White,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = "Bu kararı diğer insanlarla paylaşarak fikir alabilirsiniz.",
+                    fontSize = 12.sp,
+                    textAlign = TextAlign.Center,
+                    color = colorResource(id = R.color.text_muted),
+                    modifier = Modifier.padding(horizontal = 24.dp)
                 )
             }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Text(
-                text = "Bu kararı diğer insanlarla paylaşarak fikir alabilirsiniz.",
-                fontSize = 12.sp,
-                textAlign = TextAlign.Center,
-                color = colorResource(id = R.color.text_muted),
-                modifier = Modifier.padding(horizontal = 24.dp)
-            )
         }
     }
 

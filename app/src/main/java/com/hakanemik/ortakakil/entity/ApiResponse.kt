@@ -1,6 +1,5 @@
 package com.hakanemik.ortakakil.entity
 
-import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
 
 data class ApiResponse<T>(
@@ -13,6 +12,6 @@ data class ApiResponse<T>(
     @SerializedName("data")
     val data: T? = null,
 
-    @SerializedName("error")
+    @SerializedName("errors")
     val error: List<String?>? = null
 )

@@ -27,11 +27,14 @@ fun AnswerShareSheet(
     onValueChange: (String) -> Unit,
     onClick: () -> Unit
 ) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         containerColor = colorResource(id = R.color.surface_dark),
         dragHandle = { BottomSheetDefaults.DragHandle(color = Color.Gray.copy(alpha = 0.5f)) },
-        scrimColor = Color.Black.copy(alpha = 0.6f),
+        scrimColor = Color.Black.copy(alpha = 0.5f),
+        sheetState = sheetState,
+        windowInsets = WindowInsets.ime,
         shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
     ) {
         Column(

@@ -6,5 +6,6 @@ data class AnswerUiState(
     val question:String = "Soru yüklenıyor...",
     val category:String = "Genel",
     val isLoading:Boolean = false,
-    val shareNote:String= ""
+    val shareNote:String= "",
+    val isShared:Boolean = false
 )

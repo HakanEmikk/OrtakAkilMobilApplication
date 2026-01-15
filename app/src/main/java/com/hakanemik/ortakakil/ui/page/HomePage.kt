@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -80,12 +81,22 @@ fun CompactLayout(
     homeViewModel: HomePageViewModel,
     navController: NavController
 ) {
-    val categories = listOf(
-        CategoryItem("Alışveriş", R.drawable.shopping_cart, colorResource(id = R.color.white)),
-        CategoryItem("Kariyer", R.drawable.work, colorResource(id = R.color.white)),
-        CategoryItem("İlişkiler", R.drawable.handshake, colorResource(id = R.color.white)),
-        CategoryItem("Yaşam", R.drawable.emoji_people, colorResource(id = R.color.white))
-    )
+    var showCategorySheet by remember { mutableStateOf(false) }
+
+    val allCategories = remember {
+        listOf(
+            CategoryItem("Alışveriş", R.drawable.shopping_cart,Color.White ),
+            CategoryItem("Kariyer", R.drawable.work, Color.White),
+            CategoryItem("İlişkiler", R.drawable.handshake, Color.White),
+            CategoryItem("Yaşam", R.drawable.emoji_people,Color.White),
+            CategoryItem("Teknoloji", R.drawable.chip, Color.White),
+            CategoryItem("Seyahat", R.drawable.world,Color.White),
+            CategoryItem("Eğitim", R.drawable.quiz, Color.White)
+        )
+    }
+
+    // Başlangıçta ilk 4 tanesi gözüksün
+    var visibleCategories by remember { mutableStateOf(allCategories.take(4)) }
 
     val popularQuestions = remember {
         listOf(
@@ -153,20 +164,22 @@ fun CompactLayout(
                     unfocusedTextColor = colorResource(id = R.color.text_primary),
                 ),
                 trailingIcon = {
+                    val isTextEmpty = uiState.question.isEmpty()
                     Box(
                         modifier = Modifier
                             .padding(end = 8.dp)
                             .size(48.dp)
+                            .graphicsLayer(alpha = if (isTextEmpty) 0.5f else 1f)
                             .background(
                                 brush = Brush.linearGradient(
                                     listOf(colorResource(R.color.gradient_start), colorResource(R.color.gradient_end))
                                 ),
                                 shape = RoundedCornerShape(14.dp)
                             )
-                            .clickable { homeViewModel.aiQuestion() },
+                            .clickable(enabled = !isTextEmpty) { homeViewModel.aiQuestion() },
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(painterResource(R.drawable.pencil), null, tint = Color.White, modifier = Modifier.size(20.dp))
+                        Icon(Icons.Default.Send, null, tint = Color.White, modifier = Modifier.size(20.dp))
                     }
                 }
             )
@@ -175,7 +188,7 @@ fun CompactLayout(
         Spacer(modifier = Modifier.height(32.dp))
 
         // --- 3. KATEGORİLER ---
-        SectionHeader("Kategoriler", deviceSize)
+        SectionHeader("Kategoriler", deviceSize, isCategory = true, onSeeAllClick = { showCategorySheet = true })
         Spacer(modifier = Modifier.height(16.dp))
 
         LazyVerticalGrid(
@@ -187,7 +200,7 @@ fun CompactLayout(
             contentPadding = PaddingValues(top = 8.dp),
 
         ) {
-            items(categories) { item ->
+            items(visibleCategories) { item ->
                 ModernCategoryButton(
                     item = item,
                     isSelected = uiState.selected == item.title,
@@ -210,10 +223,32 @@ fun CompactLayout(
 
         Spacer(modifier = Modifier.height(40.dp))
     }
+
+    if (showCategorySheet) {
+        CategoryBottomSheet(
+            categories = allCategories,
+            selectedCategory = uiState.selected,
+            onCategorySelected = { title ->
+                homeViewModel.onCategorySelected(title)
+                // Seçilen kategori görünür listede yoksa, 4. sıraya ekle (swap et)
+                val selectedItem = allCategories.find { it.title == title }
+                if (selectedItem != null && !visibleCategories.contains(selectedItem)) {
+                    val newList = visibleCategories.toMutableList()
+                    if (newList.size >= 4) {
+                        newList[3] = selectedItem // 4. elemanı değiştir
+                    } else {
+                        newList.add(selectedItem)
+                    }
+                    visibleCategories = newList
+                }
+            },
+            onDismiss = { showCategorySheet = false }
+        )
+    }
 }
 
 @Composable
-fun SectionHeader(title: String, deviceSize: DeviceSize) {
+fun SectionHeader(title: String, deviceSize: DeviceSize, isCategory: Boolean = false, onSeeAllClick: () -> Unit = {}) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -225,12 +260,15 @@ fun SectionHeader(title: String, deviceSize: DeviceSize) {
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold
         )
-        Text(
-            text = "Tümü",
-            color = colorResource(id = R.color.primary_purple),
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Medium
-        )
+        if (isCategory) {
+            Text(
+                text = "Tümü",
+                color = colorResource(id = R.color.primary_purple),
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.clickable { onSeeAllClick() }
+            )
+        }
     }
 }
 
@@ -316,6 +354,54 @@ private fun HandleUIState(
             val json = Uri.encode(Gson().toJson(answerItem))
             navController.navigate(Screen.Answer.createRoute(json))
             viewModel.uiClean()
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CategoryBottomSheet(
+    categories: List<CategoryItem>,
+    selectedCategory: String,
+    onCategorySelected: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = colorResource(id = R.color.surface_dark),
+        dragHandle = { BottomSheetDefaults.DragHandle(color = Color.White.copy(alpha = 0.2f)) }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp)
+        ) {
+            Text(
+                text = "Tüm Kategoriler",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                modifier = Modifier.padding(bottom = 24.dp)
+            )
+
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                items(categories) { item ->
+                    ModernCategoryButton(
+                        item = item,
+                        isSelected = selectedCategory == item.title,
+                        onClick = {
+                            onCategorySelected(item.title)
+                            onDismiss()
+                        }
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }

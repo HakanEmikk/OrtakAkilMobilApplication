@@ -46,12 +46,14 @@ import com.hakanemik.ortakakil.entity.HistoryResponse
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
 import com.hakanemik.ortakakil.viewmodel.HistoryDetailViewModel
 import com.hakanemik.ortakakil.ui.utils.CommentsBottomSheet
 import com.hakanemik.ortakakil.ui.utils.DateUtils.calculateTimeAgo
 import com.hakanemik.ortakakil.ui.utils.AnswerShareSheet
 import com.hakanemik.ortakakil.entity.AnswerUiEvent
 import com.hakanemik.ortakakil.entity.Enum.SnackbarType
+import io.noties.markwon.Markwon
 
 @Composable
 fun HistoryDetailPage(
@@ -62,7 +64,13 @@ fun HistoryDetailPage(
 ) {
     val comments by viewModel.comments.collectAsState()
     val shareNote by viewModel.shareNote.collectAsState()
-    
+    val context = LocalContext.current
+    val markwon = remember { Markwon.create(context) }
+
+
+    val styledText = remember(item.answer) {
+        markwon.toMarkdown(item.answer).toString()
+    }
     LaunchedEffect(item.decisionId) {
         viewModel.getComments(item.decisionId)
     }
@@ -160,7 +168,7 @@ fun HistoryDetailPage(
 
                         // AI'nın uzun cevabı burada tam liste/metin olarak gösterilir
                         Text(
-                            text = item.answer ,
+                            text = styledText ,
                             color = colorResource(id = R.color.text_secondary),
                             fontSize = 15.sp,
                             lineHeight = 26.sp

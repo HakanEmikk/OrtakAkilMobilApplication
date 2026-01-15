@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -29,9 +30,9 @@ import com.hakanemik.ortakakil.entity.AnswerItem
 import com.hakanemik.ortakakil.entity.AnswerUiEvent
 import com.hakanemik.ortakakil.entity.Enum.SnackbarType
 import com.hakanemik.ortakakil.helper.currentDeviceSizeHelper
-import com.hakanemik.ortakakil.helper.responsive
 import com.hakanemik.ortakakil.ui.utils.AnswerShareSheet
 import com.hakanemik.ortakakil.viewmodel.AnswerPageViewModel
+import io.noties.markwon.Markwon
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -49,7 +50,13 @@ fun AnswerPage(
     val deviceSize = currentDeviceSizeHelper()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showSheet by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val markwon = remember { Markwon.create(context) }
 
+
+    val styledText = remember(uiState.answer) {
+        markwon.toMarkdown(uiState.answer).toString()
+    }
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
             when (event) {
@@ -146,7 +153,7 @@ fun AnswerPage(
                             }
                         } else {
                             Text(
-                                text = uiState.answer,
+                                text = styledText,
                                 color = Color.White.copy(alpha = 0.9f),
                                 fontSize = 16.sp,
                                 lineHeight = 26.sp, // Okunabilirlik için artırıldı

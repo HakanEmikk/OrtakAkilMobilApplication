@@ -85,5 +85,6 @@ dependencies {
     implementation("com.google.firebase:firebase-appcheck-playintegrity")
     implementation("com.google.firebase:firebase-appcheck:17.1.2")
     implementation("androidx.core:core-splashscreen:1.0.1")
+    implementation("io.noties.markwon:core:4.6.2")
     kapt(libs.hilt.compiler)
 }

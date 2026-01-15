@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -35,6 +36,7 @@ import com.hakanemik.ortakakil.ui.utils.AnswerShareSheet
 import com.hakanemik.ortakakil.entity.AnswerUiEvent
 import com.hakanemik.ortakakil.entity.Enum.SnackbarType
 import com.hakanemik.ortakakil.viewmodel.HistoryPageViewModel
+import io.noties.markwon.Markwon
 
 
 @Composable
@@ -135,6 +137,13 @@ fun HistoryCard(
     onCardClick: () -> Unit,
     onCommentClick: () -> Unit
 ) {
+    val context = LocalContext.current
+    val markwon = remember { Markwon.create(context) }
+
+
+    val styledText = remember(item.answer) {
+        markwon.toMarkdown(item.answer).toString()
+    }
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -217,7 +226,7 @@ fun HistoryCard(
 
                 // AI Cevabı (Özet)
                 Text(
-                    text = "AI: ${item.answer}", // Changed from aiAnswerPreview
+                    text = "AI: $styledText", // Changed from aiAnswerPreview
                     fontSize = 13.sp,
                     color = colorResource(id = R.color.text_secondary),
                     maxLines = 2,

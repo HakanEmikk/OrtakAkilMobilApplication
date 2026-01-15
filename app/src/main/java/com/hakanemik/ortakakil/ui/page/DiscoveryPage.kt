@@ -40,6 +40,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -59,6 +60,7 @@ import com.hakanemik.ortakakil.ui.navigation.Screen
 import com.hakanemik.ortakakil.ui.utils.CommentsBottomSheet
 import com.hakanemik.ortakakil.ui.utils.DateUtils.calculateTimeAgo
 import com.hakanemik.ortakakil.viewmodel.DiscoveryPageViewModel
+import io.noties.markwon.Markwon
 
 
 @Composable
@@ -136,6 +138,13 @@ fun DiscoveryCard(
     onLikeClick: () -> Unit,
     onCommentClick: () -> Unit
 ) {
+    val context = LocalContext.current
+    val markwon = remember { Markwon.create(context) }
+
+
+    val styledText = remember(item.answer) {
+        markwon.toMarkdown(item.answer).toString()
+    }
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -225,7 +234,7 @@ fun DiscoveryCard(
                         .padding(12.dp)
                 ) {
                     Text(
-                        text = "Ortak Akıl: ${item.answer}",
+                        text = "Ortak Akıl: $styledText",
                         fontSize = 14.sp,
                         color = colorResource(id = R.color.text_secondary),
                         maxLines = 3, // Uzun cevabı kesiyoruz

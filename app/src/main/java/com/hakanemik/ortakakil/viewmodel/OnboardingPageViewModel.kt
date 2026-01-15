@@ -8,7 +8,6 @@ import androidx.credentials.exceptions.NoCredentialException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hakanemik.ortakakil.entity.LoginResponse
-import com.hakanemik.ortakakil.entity.LoginUiState
 import com.hakanemik.ortakakil.entity.OnboardingState
 import com.hakanemik.ortakakil.entity.Resource
 import com.hakanemik.ortakakil.helper.GoogleAuthHelper

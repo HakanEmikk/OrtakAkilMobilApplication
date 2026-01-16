@@ -91,7 +91,7 @@ fun CompactLayout(
             CategoryItem("Yaşam", R.drawable.emoji_people,Color.White),
             CategoryItem("Teknoloji", R.drawable.chip, Color.White),
             CategoryItem("Seyahat", R.drawable.world,Color.White),
-            CategoryItem("Eğitim", R.drawable.quiz, Color.White)
+            CategoryItem("Eğitim", R.drawable.book, Color.White)
         )
     }
 

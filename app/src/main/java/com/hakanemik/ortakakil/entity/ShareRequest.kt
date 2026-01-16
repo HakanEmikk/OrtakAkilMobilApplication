@@ -6,5 +6,5 @@ data class ShareRequest(
     @SerializedName("decisionId")
     val decisionId: Int,
     @SerializedName("note")
-    val note: String,
+    val note: String?,
 )

@@ -144,6 +144,7 @@ fun ProfilePage(
         ) {
             SettingsCard("Hesap Bilgileri", R.drawable.person, { navController.navigate("account_info_page") }, deviceSize)
             SettingsCard("Bildirim Ayarları", R.drawable.notification, { navController.navigate("notification_settings_page") }, deviceSize)
+            SettingsCard("Engellenen Kullanıcılar", R.drawable.block_person, { navController.navigate("blocked_users_page") }, deviceSize)
             SettingsCard("Gizlilik ve Güvenlik", R.drawable.handshake, {}, deviceSize)
 
             // Çıkış Yap (Opsiyonel ama şık durur)

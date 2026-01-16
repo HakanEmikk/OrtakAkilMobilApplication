@@ -46,6 +46,7 @@ import com.hakanemik.ortakakil.ui.components.ModernBottomBar
 import com.hakanemik.ortakakil.ui.components.ModernTopBar
 import com.hakanemik.ortakakil.ui.navigation.Screen
 import com.hakanemik.ortakakil.ui.page.AccountInfoPage
+import com.hakanemik.ortakakil.ui.page.BlockedUsersPage
 import com.hakanemik.ortakakil.ui.page.AnswerPage
 import com.hakanemik.ortakakil.ui.page.DiscoveryDetailPage
 import com.hakanemik.ortakakil.ui.page.DiscoveryPage
@@ -280,6 +281,24 @@ fun PageSelect(
                 }
                 AccountInfoPage(navController, mainActivityViewModel::showSnackbar)
             }
+            composable(route = Screen.BlockedUsers.route) {
+                LaunchedEffect(Unit) {
+                    mainActivityViewModel.setTopBar(
+                        title = "Engellenmiş Kullanıcılar",
+                        leftIcon = R.drawable.arrow_back,
+                        onLeftClick = { mainActivityViewModel.answerPageBackNavigate() }
+                    )
+                    mainActivityViewModel.hideBottomBar()
+                }
+                BlockedUsersPage(navController, onShowSnackbar = { msg, type -> mainActivityViewModel.showSnackbar(msg, type)})
+            }
+            composable(route = Screen.Splash.route) {
+                LaunchedEffect(Unit) {
+                    mainActivityViewModel.hideTopBar()
+                    mainActivityViewModel.hideBottomBar()
+                }
+                SplashPage()
+            }
             composable(route = Screen.Home.route) {
                 LaunchedEffect(Unit) {
                     mainActivityViewModel.setTopBar(
@@ -337,7 +356,7 @@ fun PageSelect(
                         )
                         mainActivityViewModel.hideBottomBar()
                     }
-                    DiscoveryDetailPage(navController, discoveryItem)
+                    DiscoveryDetailPage(discoveryItem)
                 }
             }
             composable(

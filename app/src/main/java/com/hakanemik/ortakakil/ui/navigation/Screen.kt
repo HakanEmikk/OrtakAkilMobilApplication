@@ -11,6 +11,7 @@ sealed class Screen(val route: String) {
     data object AccountInfo : Screen("account_info_page")
     data object Splash : Screen("splash_page")
     data object Onboarding : Screen("onboarding_page")
+    data object BlockedUsers : Screen("blocked_users_page")
 
     // Dynamic routes (handling arguments)
     data object Answer : Screen("answer_page/{answerItem}") {

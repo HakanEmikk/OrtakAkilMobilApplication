@@ -67,6 +67,8 @@ fun AnswerPage(
                 is AnswerUiEvent.ShareError -> {
                     onShowSnackbar("Paylaşılırken bir hata oluştu", SnackbarType.ERROR)
                 }
+
+                else ->{}
             }
         }
     }
@@ -83,7 +85,9 @@ fun AnswerPage(
         ) {
             // 1. SORU BÖLÜMÜ
             item {
-                Column(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+                Column(modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)) {
                     Text(
                         text = "Sorduğun Soru",
                         fontSize = 13.sp,
@@ -173,7 +177,9 @@ fun AnswerPage(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Şık bir ayırıcı çizgi
-            Canvas(modifier = Modifier.fillMaxWidth().height(1.dp)) {
+            Canvas(modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)) {
                 drawLine(
                     brush = Brush.horizontalGradient(
                         colors = listOf(Color.Transparent, Color.White.copy(alpha = 0.2f), Color.Transparent)

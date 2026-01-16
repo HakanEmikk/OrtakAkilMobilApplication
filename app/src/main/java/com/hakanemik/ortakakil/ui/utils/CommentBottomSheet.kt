@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.hakanemik.ortakakil.R
 import com.hakanemik.ortakakil.entity.CommentResponse
+import com.hakanemik.ortakakil.ui.utils.DateUtils.calculateTimeAgo
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -163,7 +164,7 @@ fun CommentItem(comment: CommentResponse) {
                 lineHeight = 20.sp
             )
             Text(
-                text = comment.createdDate, // createdDate'den dönüştürülebilir
+                text = calculateTimeAgo(comment.createdDate), // createdDate'den dönüştürülebilir
                 fontSize = 11.sp,
                 color = colorResource(id = R.color.text_muted),
                 modifier = Modifier.padding(top = 4.dp)

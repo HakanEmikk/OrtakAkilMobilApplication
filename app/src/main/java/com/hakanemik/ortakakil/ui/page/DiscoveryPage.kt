@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
@@ -22,15 +23,21 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -53,12 +60,13 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.google.gson.Gson
 import com.hakanemik.ortakakil.R
+import com.hakanemik.ortakakil.entity.AnswerUiEvent
 import com.hakanemik.ortakakil.entity.DiscoveryResponse
 import com.hakanemik.ortakakil.entity.Enum.SnackbarType
-import com.hakanemik.ortakakil.helper.currentDeviceSizeHelper
 import com.hakanemik.ortakakil.ui.navigation.Screen
 import com.hakanemik.ortakakil.ui.utils.CommentsBottomSheet
 import com.hakanemik.ortakakil.ui.utils.DateUtils.calculateTimeAgo
+import com.hakanemik.ortakakil.ui.utils.ReportBottomSheet
 import com.hakanemik.ortakakil.viewmodel.DiscoveryPageViewModel
 import io.noties.markwon.Markwon
 
@@ -69,14 +77,25 @@ fun DiscoveryPage(
     onShowSnackbar: (String, SnackbarType) -> Unit,
     viewModel: DiscoveryPageViewModel = hiltViewModel()
 ) {
-    val deviceSize = currentDeviceSizeHelper()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     var showComments by remember { mutableStateOf(false) }
-
+    var showReportSheet by remember { mutableStateOf(false) }
+    var selectedDecisionIdForReport by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(Unit) {
         viewModel.refreshFeed()
+    }
+    LaunchedEffect(viewModel.uiEvent) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
+                is AnswerUiEvent.ReportSuccess -> onShowSnackbar("İçerik bildirildi", SnackbarType.SUCCESS)
+                is AnswerUiEvent.ReportError -> onShowSnackbar("Bildirme işlemi başarısız", SnackbarType.ERROR)
+                is AnswerUiEvent.BlockSuccess -> onShowSnackbar("Kullanıcı engellendi", SnackbarType.SUCCESS)
+                is AnswerUiEvent.BlockError -> onShowSnackbar("Engelleme işlemi başarısız", SnackbarType.ERROR)
+                else -> {}
+            }
+        }
     }
 
     Column(
@@ -86,13 +105,26 @@ fun DiscoveryPage(
                 color = colorResource(id = R.color.background_dark)
             )
     ) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        )
-        {
+        if (!uiState.isLoading && uiState.list.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Henüz kimse keşfette paylaşım yapmadı",
+                    color = colorResource(id = R.color.text_muted),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            )
+            {
             items(
                 count = uiState.list.size,
                 key = { index -> uiState.list[index].decisionId }
@@ -118,6 +150,13 @@ fun DiscoveryPage(
                     onCommentClick = {
                         viewModel.getComments(item.decisionId)
                         showComments = true
+                    },
+                    onReportClick = {
+                        selectedDecisionIdForReport = item.decisionId
+                         showReportSheet = true
+                    },
+                    onBlockClick = {
+                        viewModel.blockUser(item.userId)
                     }
                 )
             }
@@ -130,16 +169,30 @@ fun DiscoveryPage(
             onSendComment = { text -> viewModel.addComment(text) }
         )
     }
+
+    if (showReportSheet) {
+        ReportBottomSheet(
+            onDismiss = { showReportSheet = false },
+            onReasonSelected = { reason ->
+                viewModel.reportContent(selectedDecisionIdForReport, reason.reason,reason.description)
+                showReportSheet = false
+            }
+        )
+    }
+}
 }
 @Composable
-fun DiscoveryCard(
-    item: DiscoveryResponse, // Parametreleri tek tek geçmek yerine DTO geçmek daha temizdir
+    fun DiscoveryCard(
+    item: DiscoveryResponse,
     onClick: () -> Unit,
     onLikeClick: () -> Unit,
-    onCommentClick: () -> Unit
+    onCommentClick: () -> Unit,
+    onReportClick: () -> Unit,
+    onBlockClick: () -> Unit
 ) {
     val context = LocalContext.current
     val markwon = remember { Markwon.create(context) }
+    var showMenu by remember { mutableStateOf(false) }
 
 
     val styledText = remember(item.answer) {
@@ -148,7 +201,7 @@ fun DiscoveryCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }, // Kartın tamamı tıklanabilir
+            .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = colorResource(id = R.color.surface_dark) // Dark tema uyumu
@@ -187,22 +240,83 @@ fun DiscoveryCard(
 
             // Sağ taraftaki İçerik
             Column(modifier = Modifier.padding(16.dp).fillMaxWidth()) {
-                Text(
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth())
+                {
+                    Text(
                     text = item.userFullName,
                     fontWeight = FontWeight.Bold,
                     color = colorResource(id = R.color.text_primary)
-                )
-                Text(
-                    text = calculateTimeAgo(item.createdDate),
-                    fontSize = 12.sp,
-                    color = colorResource(id = R.color.text_muted)
-                )
+                    )
+                    Box {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "More",
+                            tint = colorResource(id = R.color.text_muted),
+                            modifier = Modifier
+                                .size(20.dp)
+                                .clickable { showMenu = !showMenu }
+                        )
+                        DropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = { showMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Bildir/Rapor Et") },
+                                onClick = {
+                                    onReportClick()
+                                    showMenu = false
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.Default.Warning,
+                                        contentDescription = null
+                                    )
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Kullanıcıyı Engelle") },
+                                onClick = {
+                                    onBlockClick()
+                                    showMenu = false
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = null
+                                    )
+                                }
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = calculateTimeAgo(item.createdDate),
+                        fontSize = 12.sp,
+                        color = colorResource(id = R.color.text_muted)
+                    )
+                    Text(
+                        text = item.category.uppercase(),
+                        style = typography.labelSmall,
+                        color = colorResource(id = R.color.primary_purple),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "Soru: ${item.title}",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
-                    color = colorResource(id = R.color.primary_purple), // Soruyu senin mor renginle vurgulayalım
+                    color = colorResource(id = R.color.primary_purple),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,// Soruyu senin mor renginle vurgulayalım
                     modifier = Modifier
                         .background(
                             color = colorResource(id = R.color.purple_overlay_10),

@@ -2,7 +2,6 @@ package com.hakanemik.ortakakil.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.hakanemik.ortakakil.entity.DiscoveryResponse
 import com.hakanemik.ortakakil.entity.DiscoveryUiState
 import com.hakanemik.ortakakil.entity.Resource
 import com.hakanemik.ortakakil.entity.CommentRequest
@@ -14,6 +13,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.receiveAsFlow
+import com.hakanemik.ortakakil.entity.AnswerUiEvent
+import com.hakanemik.ortakakil.entity.ReportRequest
+import kotlinx.coroutines.channels.Channel
 import javax.inject.Inject
 
 @HiltViewModel
@@ -22,6 +25,9 @@ class DiscoveryPageViewModel @Inject constructor(
 ):ViewModel() {
     private val _uiState = MutableStateFlow(DiscoveryUiState())
     val uiState: StateFlow<DiscoveryUiState> = _uiState.asStateFlow()
+
+    private val _uiEvent = Channel<AnswerUiEvent>()
+    val uiEvent = _uiEvent.receiveAsFlow()
 
     private var currentPage = 1
     private var isLastPage = false
@@ -107,7 +113,7 @@ class DiscoveryPageViewModel @Inject constructor(
             _uiState.update { it.copy(list = currentList) }
 
             viewModelScope.launch(Dispatchers.IO) {
-                val response = repository.likeDecision(id)
+                repository.likeDecision(id)
                 /*
                 if (response is Resource.Error) {
                     // Revert if error
@@ -122,7 +128,7 @@ class DiscoveryPageViewModel @Inject constructor(
             }
         }
     }
-    var currentDecisionId = 0
+    private var currentDecisionId = 0
     fun getComments(decisionId: Int) {
         currentDecisionId = decisionId
         viewModelScope.launch(Dispatchers.IO) {
@@ -146,7 +152,7 @@ class DiscoveryPageViewModel @Inject constructor(
 
         viewModelScope.launch(Dispatchers.IO) {
             val request = CommentRequest(decisionId = currentDecisionId, content = content)
-            when (val result = repository.addComment(request)) {
+            when (repository.addComment(request)) {
                 is Resource.Success -> {
                     getComments(currentDecisionId)
                     val currentList = _uiState.value.list.toMutableList()
@@ -163,5 +169,28 @@ class DiscoveryPageViewModel @Inject constructor(
                 is Resource.Loading -> {}
                 }
             }
+            }
+    fun reportContent(decisionId: Int, reason: String,description: String) {
+        viewModelScope.launch {
+            val request = ReportRequest(decisionId, description, reason)
+            when (repository.reportAnswer(request)) {
+                is Resource.Success -> _uiEvent.send(AnswerUiEvent.ReportSuccess)
+                is Resource.Error -> _uiEvent.send(AnswerUiEvent.ReportError)
+                else -> {}
+            }
         }
+    }
+
+    fun blockUser(userId: Int) {
+        viewModelScope.launch {
+            when (repository.blockUser(userId)) {
+                is Resource.Success ->{
+                    _uiEvent.send(AnswerUiEvent.BlockSuccess)
+                    refreshFeed()
+                }
+                is Resource.Error -> _uiEvent.send(AnswerUiEvent.BlockError)
+                else -> {}
+            }
+        }
+    }
 }

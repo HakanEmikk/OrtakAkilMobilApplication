@@ -31,26 +31,28 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.hakanemik.ortakakil.R
 import com.hakanemik.ortakakil.entity.DiscoveryResponse
 import androidx.compose.foundation.clickable
+import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.hakanemik.ortakakil.viewmodel.DiscoveryDetailViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hakanemik.ortakakil.ui.utils.CommentsBottomSheet
 import com.hakanemik.ortakakil.ui.utils.DateUtils.calculateTimeAgo
+import com.hakanemik.ortakakil.ui.utils.ReportBottomSheet
+import io.noties.markwon.Markwon
 
 @Composable
 fun DiscoveryDetailPage(
-    navController: NavHostController,
     item: DiscoveryResponse,
     viewModel: DiscoveryDetailViewModel = hiltViewModel()
 ) {
@@ -58,8 +60,15 @@ fun DiscoveryDetailPage(
     var likeCount by remember { mutableIntStateOf(item.likeCount) }
     var commentCount by remember { mutableIntStateOf(item.commentCount) }
     var showComments by remember { mutableStateOf(false) }
+    var showReportSheet by remember { mutableStateOf(false) }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val markwon = remember { Markwon.create(context) }
 
+
+    val styledText = remember(item.answer) {
+        markwon.toMarkdown(item.answer).toString()
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -75,8 +84,7 @@ fun DiscoveryDetailPage(
             AsyncImage(
                 model = if (item.userPhotoUrl.isNullOrEmpty()) R.drawable.user else item.userPhotoUrl,
                 contentDescription = null,
-                modifier = Modifier
-                    .size(50.dp)
+                modifier = Modifier.size(50.dp)
                     .clip(CircleShape)
                     .border(2.dp, Color.White, CircleShape),
                 contentScale = ContentScale.Crop,
@@ -91,29 +99,46 @@ fun DiscoveryDetailPage(
                     color = Color.White,
                     fontSize = 18.sp
                 )
-                Text(
-                    text = calculateTimeAgo(item.createdDate),
-                    color = colorResource(id = R.color.text_muted),
-                    fontSize = 14.sp
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = item.category.uppercase(),
+                        style = typography.labelSmall,
+                        color = colorResource(id = R.color.primary_purple),
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Box(modifier = Modifier.size(3.dp).background(colorResource(id = R.color.text_muted), CircleShape))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = calculateTimeAgo(item.createdDate),
+                        color = colorResource(id = R.color.text_muted),
+                        fontSize = 14.sp
+                    )
+                }
             }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
+        Box( modifier = Modifier
+            .fillMaxWidth()) {
+            Column {
+                // AI Question Section
+                Text(
+                    text = "Soru:",
+                    color = colorResource(id = R.color.text_muted),
+                    fontSize = 14.sp
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = item.title,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    lineHeight = 24.sp
+                )
+            }
+        }
 
-        // AI Question Section
-        Text(
-            text = "Soru:",
-            color = colorResource(id = R.color.text_muted),
-            fontSize = 14.sp
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = item.title,
-            fontWeight = FontWeight.Bold,
-            color = Color.White,
-            fontSize = 20.sp
-        )
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -161,7 +186,7 @@ fun DiscoveryDetailPage(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = item.answer,
+                    text = styledText,
                     color = Color.White,
                     fontSize = 16.sp,
                     lineHeight = 24.sp
@@ -209,6 +234,7 @@ fun DiscoveryDetailPage(
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(text = "$commentCount Yorum", color = Color.White)
             }
+        }
 
 //            Row(verticalAlignment = Alignment.CenterVertically) {
 //                Icon(
@@ -221,7 +247,7 @@ fun DiscoveryDetailPage(
 //                Text(text = "Paylaş", color = Color.White)
 //            }
         }
-        }
+
     if (showComments) {
         CommentsBottomSheet(
             onDismiss = { showComments = false },
@@ -229,6 +255,16 @@ fun DiscoveryDetailPage(
             onSendComment = { text ->
                 viewModel.addComment(text, item.decisionId)
                 commentCount++
+            }
+        )
+    }
+
+    if (showReportSheet) {
+        ReportBottomSheet(
+            onDismiss = { showReportSheet = false },
+            onReasonSelected = { reason ->
+                viewModel.reportContent(item.decisionId, reason.reason)
+                showReportSheet = false
             }
         )
     }

@@ -13,6 +13,10 @@ import kotlinx.coroutines.flow.update
 import com.hakanemik.ortakakil.entity.DiscoveryUiState
 import com.hakanemik.ortakakil.entity.Resource
 import com.hakanemik.ortakakil.entity.CommentRequest
+import com.hakanemik.ortakakil.entity.AnswerUiEvent
+import com.hakanemik.ortakakil.entity.ReportRequest
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
 import javax.inject.Inject
 
 @HiltViewModel
@@ -22,6 +26,9 @@ class DiscoveryDetailViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(DiscoveryUiState())
     val uiState: StateFlow<DiscoveryUiState> = _uiState.asStateFlow()
+
+    private val _uiEvent = Channel<AnswerUiEvent>()
+    val uiEvent = _uiEvent.receiveAsFlow()
 
     fun toggleLike(id: Int) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -59,6 +66,28 @@ class DiscoveryDetailViewModel @Inject constructor(
                     // Hata yönetimi
                 }
                 is Resource.Loading -> {}
+            }
+        }
+    }
+
+    fun reportContent(decisionId: Int, reason: String) {
+        viewModelScope.launch {
+            val request = ReportRequest(decisionId, "Inappropriate content: $reason", reason)
+            when (repository.reportAnswer(request)) {
+                is Resource.Success -> _uiEvent.send(AnswerUiEvent.ReportSuccess)
+                is Resource.Error -> _uiEvent.send(AnswerUiEvent.ReportError)
+                else -> {}
+            }
+        }
+    }
+
+    fun blockUser(userId: Int) {
+        viewModelScope.launch {
+
+            when (repository.blockUser(userId )) {
+                is Resource.Success -> _uiEvent.send(AnswerUiEvent.BlockSuccess)
+                is Resource.Error -> _uiEvent.send(AnswerUiEvent.BlockError)
+                else -> {}
             }
         }
     }

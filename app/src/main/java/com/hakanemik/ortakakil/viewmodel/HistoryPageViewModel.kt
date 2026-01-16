@@ -130,12 +130,30 @@ class HistoryPageViewModel @Inject constructor(
             when (response) {
                 is Resource.Success -> {
                     _uiEvent.send(AnswerUiEvent.ShareSuccess)
-                    // Update the list locally to reflect the change if needed, or refresh
+                    _uiState.update { it.copy(shareNote = "") }
                     refreshHistory()
                 }
 
                 is Resource.Error -> {
                     _uiEvent.send(AnswerUiEvent.ShareError)
+                }
+
+                else -> {}
+            }
+        }
+    }
+
+    fun unshareHistoryItem(decisionId: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val response = repository.unshareAnswer(decisionId)
+            when (response) {
+                is Resource.Success -> {
+                    _uiEvent.send(AnswerUiEvent.UnshareSuccess)
+                    refreshHistory()
+                }
+
+                is Resource.Error -> {
+                    _uiEvent.send(AnswerUiEvent.UnshareError)
                 }
 
                 else -> {}

@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import com.hakanemik.ortakakil.entity.AiRequest
 import com.hakanemik.ortakakil.entity.AiResponse
 import com.hakanemik.ortakakil.entity.ApiResponse
+import com.hakanemik.ortakakil.entity.BlockedUserResponse
 import com.hakanemik.ortakakil.entity.DiscoveryResponse
 import com.hakanemik.ortakakil.entity.ErrorResponse
 import com.hakanemik.ortakakil.entity.LoginRequest
@@ -16,6 +17,7 @@ import com.hakanemik.ortakakil.retrofit.OrtakAkilDaoInterface
 import com.hakanemik.ortakakil.entity.CommentRequest
 import com.hakanemik.ortakakil.entity.CommentResponse
 import com.hakanemik.ortakakil.entity.HistoryResponse
+import com.hakanemik.ortakakil.entity.ReportRequest
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -184,6 +186,98 @@ class OrtakAkilDaoRepository @Inject constructor(
             Resource.Error("İnternet bağlantınızı kontrol edin")
         }
         catch (e:Exception){
+            Resource.Error("Beklenmeyen hata: ")
+        }
+    }
+
+    suspend fun unshareAnswer(id: Int): Resource<ApiResponse<Boolean>> {
+        return try {
+            val response = ortakAkilDaoInterface.unshareAnswer(ShareRequest(id, null))
+            Resource.Success(response)
+        } catch (e: retrofit2.HttpException) {
+            val errorBody = e.response()?.errorBody()?.string()
+            val backendMessage = try {
+                Gson().fromJson(errorBody, ErrorResponse::class.java).message
+            } catch (ex: Exception) {
+                null
+            }
+            val userFriendlyMessage = backendMessage ?: "Bir hata oluştu, lütfen tekrar deneyin"
+            Resource.Error(userFriendlyMessage, e.code())
+        } catch (e: java.net.UnknownHostException) {
+            Resource.Error("İnternet bağlantınızı kontrol edin")
+        } catch (e: Exception) {
+            Resource.Error("Beklenmeyen hata: ")
+        }
+    }
+
+    suspend fun reportAnswer(reportRequest: ReportRequest): Resource<ApiResponse<Boolean>> {
+        return try {
+            val response = ortakAkilDaoInterface.reportAnswer(reportRequest)
+            Resource.Success(response)
+        } catch (e: retrofit2.HttpException) {
+            val errorBody = e.response()?.errorBody()?.string()
+            val backendMessage = try {
+                Gson().fromJson(errorBody, ErrorResponse::class.java).message
+            } catch (ex: Exception) {
+                null
+            }
+            val userFriendlyMessage = when(backendMessage){
+                "You have already reported this content." ->"Bu içeriği zaten bildirmiştiniz."
+                else -> "Bir hata oluştu, lütfen tekrar deneyin"
+            }
+            Resource.Error(userFriendlyMessage, e.code())
+        } catch (e: java.net.UnknownHostException) {
+            Resource.Error("İnternet bağlantınızı kontrol edin")
+        } catch (e: Exception) {
+            Resource.Error("Beklenmeyen hata: ")
+        }
+    }
+
+    suspend fun blockUser(userId: Int): Resource<ApiResponse<Boolean>> {
+        return try {
+            val response = ortakAkilDaoInterface.blockUser(userId)
+            Resource.Success(response)
+        } catch (e: retrofit2.HttpException) {
+            val errorBody = e.response()?.errorBody()?.string()
+            val backendMessage = try {
+                Gson().fromJson(errorBody, ErrorResponse::class.java).message
+            } catch (ex: Exception) {
+                null
+            }
+            val userFriendlyMessage = when (backendMessage) {
+                "You cannot block yourself." -> "Kendinizi engelleyemezsiniz."
+                else -> "Bir hata oluştu, lütfen tekrar deneyin"
+            }
+            Resource.Error(userFriendlyMessage, e.code())
+        } catch (e: java.net.UnknownHostException) {
+            Resource.Error("İnternet bağlantınızı kontrol edin")
+        } catch (e: Exception) {
+            Resource.Error("Beklenmeyen hata: ")
+        }
+    }
+
+    suspend fun getBlockedUsers(): Resource<ApiResponse<List<BlockedUserResponse>>> {
+        return try {
+            val response = ortakAkilDaoInterface.getBlockedUsers()
+            Resource.Success(response)
+        } catch (e: retrofit2.HttpException) {
+            Resource.Error("Bir hata oluştu", e.code())
+        } catch (e: java.net.UnknownHostException) {
+            Resource.Error("İnternet bağlantınızı kontrol edin")
+        } catch (e: Exception) {
+            Resource.Error("Beklenmeyen hata: ")
+        }
+    }
+
+    suspend fun unblockUser(blockedId: Int): Resource<ApiResponse<Boolean>> {
+        return try {
+            val response = ortakAkilDaoInterface.unblockUser(blockedId)
+            Resource.Success(response)
+        } catch (e: retrofit2.HttpException) {
+            Resource.Error("Bir hata oluştu", e.code())
+        } catch (e: java.net.UnknownHostException) {
+            Resource.Error("İnternet bağlantınızı kontrol edin")
+        } catch (e: Exception) {
             Resource.Error("Beklenmeyen hata: ")
         }
     }

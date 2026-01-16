@@ -3,6 +3,7 @@ package com.hakanemik.ortakakil.retrofit
 import com.hakanemik.ortakakil.entity.AiRequest
 import com.hakanemik.ortakakil.entity.AiResponse
 import com.hakanemik.ortakakil.entity.ApiResponse
+import com.hakanemik.ortakakil.entity.BlockedUserResponse
 import com.hakanemik.ortakakil.entity.CommentRequest
 import com.hakanemik.ortakakil.entity.CommentResponse
 import com.hakanemik.ortakakil.entity.DiscoveryResponse
@@ -10,6 +11,7 @@ import com.hakanemik.ortakakil.entity.HistoryResponse
 import com.hakanemik.ortakakil.entity.LoginRequest
 import com.hakanemik.ortakakil.entity.LoginResponse
 import com.hakanemik.ortakakil.entity.RegisterRequest
+import com.hakanemik.ortakakil.entity.ReportRequest
 import com.hakanemik.ortakakil.entity.ShareRequest
 import com.hakanemik.ortakakil.entity.User
 import retrofit2.http.Body
@@ -36,10 +38,20 @@ interface OrtakAkilDaoInterface {
     suspend fun updateProfile(@Body user: User):ApiResponse<User>
     @POST("/api/Discover/share")
     suspend fun shareAnswer(@Body shareRequest : ShareRequest) : ApiResponse<Boolean>
+    @POST("/api/Discover/share")
+    suspend fun unshareAnswer(@Body shareRequest : ShareRequest): ApiResponse<Boolean>
     @GET("/api/Discover/feed")
     suspend fun loadFeed( @Query("page") page: Int):ApiResponse<List<DiscoveryResponse>>
     @POST("/api/Discover/like/{id}")
     suspend fun likeDecision(@Path("id") id: Int): ApiResponse<Boolean>
+    @POST("/api/Report/create")
+    suspend fun reportAnswer(@Body reportRequest: ReportRequest) : ApiResponse<Boolean>
+    @POST("/api/UserBlock/block/{blockedId}")
+    suspend fun blockUser(@Path("blockedId") blockedId: Int) : ApiResponse<Boolean>
+    @GET("/api/UserBlock/blocked-users")
+    suspend fun getBlockedUsers() : ApiResponse<List<BlockedUserResponse>>
+    @POST("/api/UserBlock/unblock/{blockedId}")
+    suspend fun unblockUser(@Path("blockedId") blockedId: Int) : ApiResponse<Boolean>
     @POST("/api/Discover/add-comment")
     suspend fun addComment(@Body commentRequest: CommentRequest): ApiResponse<Boolean>
     @GET("/api/Discover/get-comments/{decisionId}")

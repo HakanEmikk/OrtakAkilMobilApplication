@@ -58,10 +58,11 @@ import io.noties.markwon.Markwon
 @Composable
 fun HistoryDetailPage(
     navController: NavHostController,
-    item: HistoryResponse,
+    itemParam: HistoryResponse, // Renamed to avoid confusion
     onShowSnackbar: (String, SnackbarType) -> Unit,
     viewModel: HistoryDetailViewModel = hiltViewModel()
 ) {
+    var item by remember { mutableStateOf(itemParam) }
     val comments by viewModel.comments.collectAsState()
     val shareNote by viewModel.shareNote.collectAsState()
     val context = LocalContext.current
@@ -88,6 +89,19 @@ fun HistoryDetailPage(
                 is AnswerUiEvent.ShareError -> {
                     onShowSnackbar("Paylaşılırken bir hata oluştu", SnackbarType.ERROR)
                 }
+
+                AnswerUiEvent.UnshareError -> {
+                    onShowSnackbar("Kaldırılırken bir hata oluştu", SnackbarType.ERROR)
+                }
+                AnswerUiEvent.UnshareSuccess -> {
+                    item = item.copy(isPublic = false)
+                    onShowSnackbar("Keşfetten kaldırıldı", SnackbarType.SUCCESS)
+                }
+
+                AnswerUiEvent.ReportError -> {}
+                AnswerUiEvent.ReportSuccess -> {}
+                AnswerUiEvent.BlockError -> {}
+                AnswerUiEvent.BlockSuccess -> {}
             }
         }
     }
@@ -241,6 +255,26 @@ fun HistoryDetailPage(
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(text = "${item.commentCount} Yorum", color = colorResource(R.color.white))
                         }
+                    }
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(
+                        onClick = { viewModel.unshareHistoryItem(item.decisionId) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(58.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = colorResource(id = R.color.error)
+                        ),
+                        shape = RoundedCornerShape(16.dp),
+                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
+                    ) {
+                        Text(
+                            "Keşfet'ten Kaldır",
+                            color = Color.White,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }

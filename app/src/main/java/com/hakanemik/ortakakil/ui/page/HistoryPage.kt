@@ -61,6 +61,20 @@ fun HistoryPage(
                 is AnswerUiEvent.ShareError -> {
                     onShowSnackbar("Paylaşılırken bir hata oluştu", SnackbarType.ERROR)
                 }
+                is AnswerUiEvent.UnshareSuccess -> {
+                    onShowSnackbar("Keşfetten kaldırıldı", SnackbarType.SUCCESS)
+                }
+                is AnswerUiEvent.UnshareError -> {
+                    onShowSnackbar("Kaldırılırken bir hata oluştu", SnackbarType.ERROR)
+                }
+
+                AnswerUiEvent.ReportError -> {
+                    onShowSnackbar("Bildirme işlemi başarısız", SnackbarType.ERROR)
+                }
+                AnswerUiEvent.ReportSuccess -> {
+                    onShowSnackbar("İçerik bildirildi", SnackbarType.SUCCESS)
+                }
+                else -> {}
             }
         }
     }
@@ -74,10 +88,23 @@ fun HistoryPage(
             .background(colorResource(id = R.color.background_dark))
             .padding(horizontal = 16.dp)
     ) {
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(bottom = 20.dp)
-        ) {
+        if (!uiState.isLoading && uiState.list.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Daha hiç bir şey sormadınız",
+                    color = colorResource(id = R.color.text_muted),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        } else {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                contentPadding = PaddingValues(bottom = 20.dp)
+            ) {
             items(
                 count = uiState.list.size,
                 key = { index -> uiState.list[index].decisionId }
@@ -96,6 +123,9 @@ fun HistoryPage(
                         selectedDecisionId = item.decisionId
                         showShareSheet = true
                     },
+                    onUnshareClick = {
+                        viewModel.unshareHistoryItem(item.decisionId)
+                    },
                     onCardClick = {
                         val gson = Gson()
                         val json = gson.toJson(item)
@@ -108,6 +138,7 @@ fun HistoryPage(
                     }
                 )
             }
+        }
         }
     }
     
@@ -134,6 +165,7 @@ fun HistoryPage(
 fun HistoryCard(
     item: HistoryResponse, // Changed from HistoryItem
     onShareClick: () -> Unit,
+    onUnshareClick: () -> Unit,
     onCardClick: () -> Unit,
     onCommentClick: () -> Unit
 ) {
@@ -244,14 +276,13 @@ fun HistoryCard(
                 ) {
                     if (item.isPublic) {
                         // DURUM 1: Zaten Paylaşılmış -> İstatistikleri Göster
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(verticalAlignment = Alignment.CenterVertically ,
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            modifier = Modifier.fillMaxWidth() ) {
                             StatusBadge(text = "Yayında", color = colorResource(R.color.success)) // assuming success is tertiary
-                            Spacer(modifier = Modifier.width(12.dp))
 
-                            Icon(Icons.Default.Favorite, null, tint = colorResource(R.color.white), modifier = Modifier.size(14.dp))
-                            Text(" ${item.likeCount}", color = colorResource(R.color.white), fontSize = 12.sp)
-
-                            Spacer(modifier = Modifier.width(8.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Default.Favorite, null, tint = colorResource(R.color.white), modifier = Modifier.size(14.dp))
+                                Text(" ${item.likeCount}", color = colorResource(R.color.white), fontSize = 12.sp) }
 
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
@@ -259,6 +290,20 @@ fun HistoryCard(
                             ) {
                                 Icon(painterResource(id = R.drawable.comment), null, tint = colorResource(R.color.white), modifier = Modifier.size(14.dp))
                                 Text(" ${item.commentCount}", color = colorResource(R.color.white), fontSize = 12.sp)
+                            }
+
+                            Button(
+                                onClick = { onUnshareClick() },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = colorResource(id = R.color.error),
+                                    contentColor = Color.White
+                                ),
+                                shape = RoundedCornerShape(12.dp),
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                                elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp),
+                                modifier = Modifier.height(32.dp)
+                            ) {
+                                Text("Keşfet'ten Kaldır", fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                             }
                         }
                     } else {
@@ -286,12 +331,12 @@ fun HistoryCard(
                             Text("Keşfet'te Paylaş", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                         }
                     }
-                }
             }
+
         }
     }
 }
-
+}
 @Composable
 fun StatusBadge(text: String, color: Color) {
     Row(

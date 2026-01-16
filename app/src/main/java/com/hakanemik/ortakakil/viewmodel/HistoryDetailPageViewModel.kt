@@ -57,9 +57,25 @@ class HistoryDetailViewModel @Inject constructor(
             when (response) {
                 is Resource.Success -> {
                     _uiEvent.send(AnswerUiEvent.ShareSuccess)
+                    _shareNote.value = ""
                 }
                 is Resource.Error -> {
                     _uiEvent.send(AnswerUiEvent.ShareError)
+                }
+                else -> {}
+            }
+        }
+    }
+
+    fun unshareHistoryItem(decisionId: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val response = repository.unshareAnswer(decisionId)
+            when (response) {
+                is Resource.Success -> {
+                    _uiEvent.send(AnswerUiEvent.UnshareSuccess)
+                }
+                is Resource.Error -> {
+                    _uiEvent.send(AnswerUiEvent.UnshareError)
                 }
                 else -> {}
             }

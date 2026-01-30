@@ -15,6 +15,7 @@ import com.hakanemik.ortakakil.entity.ReportRequest
 import com.hakanemik.ortakakil.entity.ShareRequest
 import com.hakanemik.ortakakil.entity.User
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.PUT
@@ -36,6 +37,8 @@ interface OrtakAkilDaoInterface {
     suspend fun loadProfile():ApiResponse<User>
     @PUT("/api/User/UpdateProfile")
     suspend fun updateProfile(@Body user: User):ApiResponse<User>
+    @DELETE("/api/User/DeleteUser{id}")
+    suspend fun deleteUser(@Path("id") userId: Int): ApiResponse<Boolean>
     @POST("/api/Discover/share")
     suspend fun shareAnswer(@Body shareRequest : ShareRequest) : ApiResponse<Boolean>
     @POST("/api/Discover/share")

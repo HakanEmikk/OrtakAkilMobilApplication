@@ -7,5 +7,6 @@ data class ProfileUiState(
     val totalShareCount:String = "0",
     val photoUrl: String = "",
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val deleteAccountState: Resource<Boolean>? = null
 )

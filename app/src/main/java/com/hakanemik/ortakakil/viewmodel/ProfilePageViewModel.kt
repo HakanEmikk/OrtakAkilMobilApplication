@@ -72,4 +72,36 @@ class ProfilePageViewModel @Inject constructor(
             }
         }
     }
+
+    fun deleteAccount() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(deleteAccountState = Resource.Loading) }
+            
+            try {
+                val userId = userRepository.getUserId()
+                if (userId == null) {
+                    _uiState.update { it.copy(deleteAccountState = Resource.Error("Kullanıcı ID bulunamadı")) }
+                    return@launch
+                }
+                
+                when (val response = repository.deleteUser(userId)) {
+                    is Resource.Success -> {
+                        _uiState.update { it.copy(deleteAccountState = Resource.Success(response.data.success)) }
+                    }
+                    is Resource.Error -> {
+                        _uiState.update { it.copy(deleteAccountState = Resource.Error(response.message)) }
+                    }
+                    else -> {
+                        _uiState.update { it.copy(deleteAccountState = Resource.Loading) }
+                    }
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(deleteAccountState = Resource.Error(e.message ?: "Bilinmeyen hata")) }
+            }
+        }
+    }
+
+    fun clearDeleteAccountState() {
+        _uiState.update { it.copy(deleteAccountState = null) }
+    }
 }

@@ -14,7 +14,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,6 +37,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.hakanemik.ortakakil.R
 import com.hakanemik.ortakakil.entity.Enum.SnackbarType
+import com.hakanemik.ortakakil.entity.Resource
 import com.hakanemik.ortakakil.helper.DeviceSize
 import com.hakanemik.ortakakil.helper.currentDeviceSizeHelper
 import com.hakanemik.ortakakil.helper.responsive
@@ -48,10 +53,31 @@ fun ProfilePage(
     val deviceSize = currentDeviceSizeHelper()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val imageSource = if (uiState.photoUrl.isEmpty()) R.drawable.user else uiState.photoUrl
+    
+    var showFirstDialog by remember { mutableStateOf(false) }
+    var showSecondDialog by remember { mutableStateOf(false) }
+    
+    // Handle delete account state
+    LaunchedEffect(uiState.deleteAccountState) {
+        when (uiState.deleteAccountState) {
+            is Resource.Success -> {
+                onShowSnackbar("Hesabınız başarıyla silindi", SnackbarType.SUCCESS)
+                viewModel.clearDeleteAccountState()
+                navController.navigate("login_page") {
+                    popUpTo(0) { inclusive = true }
+                }
+            }
+            is Resource.Error -> {
+                onShowSnackbar((uiState.deleteAccountState as Resource.Error).message, SnackbarType.ERROR)
+                viewModel.clearDeleteAccountState()
+            }
+            else -> {}
+        }
+    }
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxSize().navigationBarsPadding()
             .background(colorResource(id = R.color.background_dark))
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 24.dp),
@@ -146,12 +172,49 @@ fun ProfilePage(
             SettingsCard("Bildirim Ayarları", R.drawable.notification, { navController.navigate("notification_settings_page") }, deviceSize)
             SettingsCard("Engellenen Kullanıcılar", R.drawable.block_person, { navController.navigate("blocked_users_page") }, deviceSize)
             SettingsCard("Gizlilik ve Güvenlik", R.drawable.handshake, {}, deviceSize)
-
-            // Çıkış Yap (Opsiyonel ama şık durur)
-//            SettingsCard("Çıkış Yap", R.drawable.settings, {}, deviceSize, isDanger = true)
+            
+            Spacer(modifier = Modifier.height(6.dp))
+            
+            // Hesabı Sil Butonu
+            SettingsCard(
+                settingName = "Hesabı Sil",
+                leftIcon = R.drawable.delete,
+                onClick = { showFirstDialog = true },
+                deviceSize = deviceSize,
+                isDanger = true
+            )
         }
 
         Spacer(Modifier.height(40.dp))
+    }
+    
+    // First Confirmation Dialog
+    if (showFirstDialog) {
+        DeleteAccountDialog(
+            title = "Hesabınızı Silmek İstediğinize Emin misiniz?",
+            message = "Bu işlem geri alınamaz. Tüm verileriniz kalıcı olarak silinecektir.",
+            confirmText = "Devam Et",
+            onConfirm = {
+                showFirstDialog = false
+                showSecondDialog = true
+            },
+            onDismiss = { showFirstDialog = false }
+        )
+    }
+    
+    // Second Confirmation Dialog
+    if (showSecondDialog) {
+        DeleteAccountDialog(
+            title = "Son Onay",
+            message = "Hesabınız ve tüm verileriniz kalıcı olarak silinecek. Devam etmek istiyor musunuz?",
+            confirmText = "Evet, Sil",
+            onConfirm = {
+                showSecondDialog = false
+                viewModel.deleteAccount()
+            },
+            onDismiss = { showSecondDialog = false },
+            isLoading = uiState.deleteAccountState is Resource.Loading
+        )
     }
 }
 
@@ -256,4 +319,68 @@ fun SettingsCard(
             )
         }
     }
+}
+
+@Composable
+fun DeleteAccountDialog(
+    title: String,
+    message: String,
+    confirmText: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+    isLoading: Boolean = false
+) {
+    AlertDialog(
+        onDismissRequest = { if (!isLoading) onDismiss() },
+        title = {
+            Text(
+                text = title,
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp,
+                color = Color.White
+            )
+        },
+        text = {
+            Text(
+                text = message,
+                fontSize = 16.sp,
+                color = colorResource(id = R.color.text_muted)
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                enabled = !isLoading,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colorResource(id = R.color.error),
+                    disabledContainerColor = colorResource(id = R.color.error).copy(alpha = 0.5f)
+                ),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(confirmText, fontWeight = FontWeight.Bold)
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss,
+                enabled = !isLoading
+            ) {
+                Text(
+                    "İptal",
+                    color = colorResource(id = R.color.text_muted),
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        },
+        containerColor = colorResource(id = R.color.surface_dark),
+        shape = RoundedCornerShape(24.dp)
+    )
 }

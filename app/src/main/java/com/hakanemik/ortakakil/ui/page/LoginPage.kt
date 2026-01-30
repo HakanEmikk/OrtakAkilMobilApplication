@@ -8,6 +8,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -57,6 +58,7 @@ fun LoginPage(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .navigationBarsPadding()
                 .padding(horizontal = 24.dp)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -208,12 +210,18 @@ private fun GoogleSignInButton(onClick: () -> Unit, isLoading: Boolean, deviceSi
 }
 
 @Composable
-fun HandleUIState(loginState: Resource<*>?, navController: NavController, onShowSnackbar: (String, SnackbarType) -> Unit) {
+fun HandleUIState(loginState: Resource<*>?, navController: NavController, onShowSnackbar: (String, SnackbarType) -> Unit,isOnBoarding: Boolean = false) {
     LaunchedEffect(loginState) {
         when (loginState) {
             is Resource.Success -> {
                 onShowSnackbar("Başarıyla giriş yapıldı", SnackbarType.SUCCESS)
-                navController.navigate("home_page") { popUpTo("login_page") { inclusive = true } }
+                if (isOnBoarding){
+                    navController.navigate("home_page") { popUpTo("onboarding_page") { inclusive = true } }
+                }
+                else{
+                    navController.navigate("home_page") { popUpTo("login_page") { inclusive = true } }
+                }
+
             }
             is Resource.Error -> onShowSnackbar(loginState.message, SnackbarType.ERROR)
             else -> {}

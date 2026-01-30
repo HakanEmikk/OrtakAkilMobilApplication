@@ -1,6 +1,7 @@
 package com.hakanemik.ortakakil.viewmodel
 
 import android.net.Uri
+import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hakanemik.ortakakil.entity.AccountInfoPageUiState
@@ -46,18 +47,59 @@ class AccountInfoPageViewModel @Inject constructor(
     }
 
     fun updateFirstName(it: String) {
-        _uiState.update { state -> state.copy(firstName = it) }
+        _uiState.update { state -> state.copy(firstName = it, firstNameError = null) }
     }
 
     fun updateLastName(it: String) {
-        _uiState.update { state -> state.copy(lastName = it) }
+        _uiState.update { state -> state.copy(lastName = it, lastNameError = null) }
     }
 
     fun updateEmail(it: String) {
-        _uiState.update { state -> state.copy(email = it) }
+        _uiState.update { state -> state.copy(email = it, emailError = null) }
     }
 
     fun updateProfile() {
+        val currentState = _uiState.value
+        val name = currentState.firstName
+        val surname = currentState.lastName
+        val email = currentState.email.trim()
+
+        var nameError: String? = null
+        var surnameError: String? = null
+        var emailError: String? = null
+
+        if (name.isBlank()) {
+            nameError = "İsim boş olamaz"
+        } else if (name.length < 2) {
+            nameError = "İsim en az 2 karakter olmalıdır"
+        } else if (!name.matches(Regex("^[a-zA-ZığüşöçİĞÜŞÖÇ ]+$"))) {
+            nameError = "İsim sadece harf içermelidir"
+        }
+
+        if (surname.isBlank()) {
+            surnameError = "Soyisim boş olamaz"
+        } else if (surname.length < 2) {
+            surnameError = "Soyisim en az 2 karakter olmalıdır"
+        } else if (!surname.matches(Regex("^[a-zA-ZığüşöçİĞÜŞÖÇ ]+$"))) {
+            surnameError = "Soyisim sadece harf içermelidir"
+        }
+
+        if (email.isBlank()) {
+            emailError = "E-posta boş olamaz"
+        } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            emailError = "Geçerli bir e-posta giriniz"
+        }
+
+        if (nameError != null || surnameError != null || emailError != null) {
+            _uiState.update { state ->
+                state.copy(
+                    firstNameError = nameError,
+                    lastNameError = surnameError,
+                    emailError = emailError
+                )
+            }
+            return
+        }
 
         viewModelScope.launch {
             try {

@@ -90,7 +90,7 @@ fun AccountInfoPage(
     val imageSource = uiState.photoUri ?: uiState.photoUrl.takeIf { !it.isNullOrEmpty() } ?: R.drawable.user
 
     Box(modifier = Modifier
-        .fillMaxSize()
+        .fillMaxSize().navigationBarsPadding()
         .background(colorResource(id = R.color.background_dark))
         .pointerInput(Unit) {
             detectTapGestures(onTap = { focusManager.clearFocus() })
@@ -163,7 +163,8 @@ fun AccountInfoPage(
                         label = "Ad",
                         value = uiState.firstName,
                         onValueChange = viewModel::updateFirstName,
-                        deviceSize = deviceSize
+                        deviceSize = deviceSize,
+                        error = uiState.firstNameError
                     )
                 }
                 item {
@@ -171,7 +172,8 @@ fun AccountInfoPage(
                         label = "Soyad",
                         value = uiState.lastName,
                         onValueChange = viewModel::updateLastName,
-                        deviceSize = deviceSize
+                        deviceSize = deviceSize,
+                        error = uiState.lastNameError
                     )
                 }
                 item {
@@ -180,7 +182,8 @@ fun AccountInfoPage(
                         value = uiState.email,
                         onValueChange = viewModel::updateEmail,
                         deviceSize = deviceSize,
-                        enabled = uiState.authProvider != "google"
+                        enabled = uiState.authProvider != "google",
+                        error = uiState.emailError
                     )
                 }
             }
@@ -225,7 +228,8 @@ fun EditableFieldCard(
     value: String,
     onValueChange: (String) -> Unit,
     deviceSize: DeviceSize,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    error: String? = null
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
@@ -266,6 +270,15 @@ fun EditableFieldCard(
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Medium
                 )
+            )
+        }
+
+        if (error != null) {
+            Text(
+                text = error,
+                color = colorResource(id = R.color.error),
+                fontSize = 11.sp,
+                modifier = Modifier.padding(start = 8.dp, top = 4.dp)
             )
         }
     }

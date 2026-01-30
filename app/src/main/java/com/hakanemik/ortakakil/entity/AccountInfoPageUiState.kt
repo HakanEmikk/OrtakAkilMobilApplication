@@ -10,6 +10,9 @@ data class AccountInfoPageUiState(
     val authProvider: String = "",
     val error: String? = null,
     val photoUrl: String? = null,
-    val photoUri: Uri? = null
+    val photoUri: Uri? = null,
+    val firstNameError: String? = null,
+    val lastNameError: String? = null,
+    val emailError: String? = null
 )
 

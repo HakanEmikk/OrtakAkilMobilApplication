@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -94,10 +95,11 @@ fun HistoryPage(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Daha hiç bir şey sormadınız",
+                    text = "Geçmişiniz henüz boş görünüyor. Yeni bir şeyler sormaya ne dersiniz?",
                     color = colorResource(id = R.color.text_muted),
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.Medium,
+                    textAlign = TextAlign.Center
                 )
             }
         } else {

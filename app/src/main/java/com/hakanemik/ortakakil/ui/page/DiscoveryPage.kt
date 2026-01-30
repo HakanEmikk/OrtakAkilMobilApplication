@@ -111,7 +111,7 @@ fun DiscoveryPage(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Henüz kimse keşfette paylaşım yapmadı",
+                    text = "Henüz kimse bir şey paylaşmadı. Sahne senin!",
                     color = colorResource(id = R.color.text_muted),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium

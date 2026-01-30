@@ -38,7 +38,7 @@ class OrtakAkilDaoRepository @Inject constructor(
             }
             val userFriendlyMessage = when (backendMessage) {
                 "Email or password is incorrect." -> "E-posta veya şifre hatalı"
-                "User not found." -> "E-posta veya şifre hatalı"
+                "User not found." -> "Kullanıcı Bulunamadı"
                 "This account uses Google sign-in. Please login with Google." -> "Bu hesap Google oturum açma özelliğini kullanır. Lütfen Google ile giriş yapın."
                 else -> "Bir hata oluştu, lütfen tekrar deneyin"
             }
@@ -281,7 +281,18 @@ class OrtakAkilDaoRepository @Inject constructor(
             Resource.Error("Beklenmeyen hata: ")
         }
     }
-
+    suspend fun deleteUser(userId: String): Resource<ApiResponse<Boolean>> {
+        return try {
+            val response = ortakAkilDaoInterface.deleteUser(userId.toInt())
+            Resource.Success(response)
+        } catch (e: retrofit2.HttpException) {
+            Resource.Error("Bir hata oluştu", e.code())
+        }catch (e: java.net.UnknownHostException) {
+            Resource.Error("İnternet bağlantınızı kontrol edin")
+        } catch (e: Exception) {
+            Resource.Error("Beklenmeyen hata: ")
+        }
+    }
     suspend fun logout(refreshToken: String?):Resource<ApiResponse<Boolean>> {
         return try {
             if(refreshToken == null) return Resource.Error("Oturum bilgisi bulunamadı")

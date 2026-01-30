@@ -54,6 +54,7 @@ fun OnboardingPage(
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .navigationBarsPadding()
             .background(gradient)
     ) {
         // Her sayfa için animasyonlu geçiş
@@ -77,9 +78,9 @@ fun OnboardingPage(
             exit = slideOutHorizontally(targetOffsetX = { -it }) + fadeOut(animationSpec = tween(500))
         ) {
             OnboardingScreen3(
-                onLoginClick = { navController.navigate("login_page") },
+                onLoginClick = { navController.navigate("login_page"){ popUpTo("onboarding_page") { inclusive = true } } },
                 onGoogleSignIn =  {viewModel.loginWithGoogle(context)} ,
-                onRegisterClick = { navController.navigate("register_page") },
+                onRegisterClick = { navController.navigate("register_page"){popUpTo("onboarding_page") { inclusive = true }} },
                 onBack = { currentPage-- },
                 isLoading = uiState.loginState is Resource.Loading
             )
@@ -107,5 +108,5 @@ fun OnboardingPage(
             }
         }
     }
-    HandleUIState(uiState.loginState, navController, onShowSnackbar)
+    HandleUIState(uiState.loginState, navController, onShowSnackbar,true)
 }

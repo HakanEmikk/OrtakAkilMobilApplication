@@ -1,8 +1,13 @@
 package com.hakanemik.ortakakil.ui.utils
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -13,13 +18,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hakanemik.ortakakil.R
+import androidx.core.net.toUri
 
 @Composable
 fun OnboardingScreen3(
@@ -32,7 +43,8 @@ fun OnboardingScreen3(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp, vertical = 32.dp),
+            .navigationBarsPadding()
+            .padding(start = 24.dp, top = 32.dp, end = 24.dp, bottom = 48.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
@@ -45,7 +57,7 @@ fun OnboardingScreen3(
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Image(
-                painter = painterResource(id = R.drawable.join,), // Özellikleri temsili ikon
+                painter = painterResource(id = R.drawable.join), // Özellikleri temsili ikon
                 contentDescription = "Özellikler",
                 modifier = Modifier.size(200.dp)
             )
@@ -122,6 +134,78 @@ fun OnboardingScreen3(
                     fontSize = 16.sp
                 )
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Terms and Privacy Policy
+            TermsAndPrivacyText()
         }
     }
+}
+
+@Composable
+fun TermsAndPrivacyText() {
+    val context = LocalContext.current
+    
+    // Placeholder URLs - Gerçek URL'lerinizi buraya ekleyebilirsiniz
+    val termsUrl = ""
+    val privacyUrl = ""
+    
+    val annotatedString = buildAnnotatedString {
+        withStyle(style = SpanStyle(color = Color.Gray, fontSize = 12.sp)) {
+            append("Devam ederek ")
+        }
+        
+        pushStringAnnotation(tag = "TERMS", annotation = termsUrl)
+        withStyle(style = SpanStyle(
+            color = colorResource(id = R.color.primary_purple),
+            fontWeight = FontWeight.Bold,
+            fontSize = 12.sp
+        )) {
+            append("Hizmet Şartları")
+        }
+        pop()
+        
+        withStyle(style = SpanStyle(color = Color.Gray, fontSize = 12.sp)) {
+            append(" ve ")
+        }
+        
+        pushStringAnnotation(tag = "PRIVACY", annotation = privacyUrl)
+        withStyle(style = SpanStyle(
+            color = colorResource(id = R.color.primary_purple),
+            fontWeight = FontWeight.Bold,
+            fontSize = 12.sp
+        )) {
+            append("Gizlilik Politikası")
+        }
+        pop()
+        
+        withStyle(style = SpanStyle(color = Color.Gray, fontSize = 12.sp)) {
+            append("'nı kabul etmiş olursunuz.")
+        }
+    }
+    
+    ClickableText(
+        text = annotatedString,
+        onClick = { offset ->
+            annotatedString.getStringAnnotations(tag = "TERMS", start = offset, end = offset)
+                .firstOrNull()?.let { annotation ->
+                    val intent = Intent(Intent.ACTION_VIEW, annotation.item.toUri())
+                    context.startActivity(intent)
+                }
+            
+            annotatedString.getStringAnnotations(tag = "PRIVACY", start = offset, end = offset)
+                .firstOrNull()?.let { annotation ->
+                    val intent = Intent(Intent.ACTION_VIEW, annotation.item.toUri())
+                    context.startActivity(intent)
+                }
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        style = TextStyle(
+            textAlign = TextAlign.Center,
+            lineHeight = 16.sp
+        )
+    )
 }

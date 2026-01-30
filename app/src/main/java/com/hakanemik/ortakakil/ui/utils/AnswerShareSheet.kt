@@ -137,20 +137,27 @@ fun AnswerShareSheet(
             Spacer(modifier = Modifier.height(32.dp))
 
             // --- ACTION BUTTON ---
+            val isButtonEnabled = value.isNotBlank()
+            
             Button(
                 onClick = onClick,
+                enabled = isButtonEnabled,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(58.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = colorResource(id = R.color.primary_purple)
+                    containerColor = if (isButtonEnabled) 
+                        colorResource(id = R.color.primary_purple) 
+                    else 
+                        Color.Gray.copy(alpha = 0.3f),
+                    disabledContainerColor = Color.Gray.copy(alpha = 0.3f)
                 ),
                 shape = RoundedCornerShape(16.dp),
                 elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
             ) {
                 Text(
                     text = "Şimdi Paylaş",
-                    color = Color.White,
+                    color = if (isButtonEnabled) Color.White else Color.Gray,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )

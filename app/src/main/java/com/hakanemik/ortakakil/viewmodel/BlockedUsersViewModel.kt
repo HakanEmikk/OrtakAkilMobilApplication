@@ -2,22 +2,18 @@ package com.hakanemik.ortakakil.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.hakanemik.ortakakil.entity.BlockedUserResponse
+import com.hakanemik.ortakakil.entity.BlockedUsersUiState
 import com.hakanemik.ortakakil.entity.Resource
 import com.hakanemik.ortakakil.repo.OrtakAkilDaoRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class BlockedUsersUiState(
-    val isLoading: Boolean = false,
-    val blockedUsers: List<BlockedUserResponse> = emptyList(),
-    val error: String? = null,
-    val unblockSuccess: String? = null
-)
+
 
 @HiltViewModel
 class BlockedUsersViewModel @Inject constructor(
@@ -33,22 +29,35 @@ class BlockedUsersViewModel @Inject constructor(
 
     private fun getBlockedUsers() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            _uiState.update {
+                it.copy(
+                    isLoading = true,
+                    error = null
+                )
+            }
             when (val result = repository.getBlockedUsers()) {
                 is Resource.Success -> {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        blockedUsers = result.data.data ?: emptyList()
-                    )
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            blockedUsers = result.data.data ?: emptyList()
+                        )
+                    }
                 }
                 is Resource.Error -> {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        error = result.message
-                    )
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            error = result.message
+                        )
+                    }
                 }
                 else -> {
-                    _uiState.value = _uiState.value.copy(isLoading = false)
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                        )
+                    }
                 }
             }
         }
@@ -61,13 +70,19 @@ class BlockedUsersViewModel @Inject constructor(
                      // remove locally
                     val currentList = _uiState.value.blockedUsers.toMutableList()
                     currentList.removeAll { it.id == blockedId }
-                    _uiState.value = _uiState.value.copy(
-                        blockedUsers = currentList,
-                        unblockSuccess = "Engel kaldırıldı"
-                    )
+                    _uiState.update {
+                        it.copy(
+                            blockedUsers = currentList,
+                            unblockSuccess = "Engel kaldırıldı"
+                        )
+                    }
                 }
                 is Resource.Error -> {
-                     _uiState.value = _uiState.value.copy(error = result.message ?: "Hata oluştu")
+                    _uiState.update {
+                        it.copy(
+                            error = result.message ?: "Hata oluştu"
+                        )
+                    }
                 }
                 else -> {}
             }
@@ -75,6 +90,11 @@ class BlockedUsersViewModel @Inject constructor(
     }
 
     fun clearMessage() {
-        _uiState.value = _uiState.value.copy(error = null, unblockSuccess = null)
+        _uiState.update {
+            it.copy(
+                error = null,
+                unblockSuccess = null
+            )
+        }
     }
 }

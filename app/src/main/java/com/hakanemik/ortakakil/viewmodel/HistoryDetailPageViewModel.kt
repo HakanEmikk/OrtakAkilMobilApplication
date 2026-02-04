@@ -25,6 +25,12 @@ class HistoryDetailViewModel @Inject constructor(
     private val _comments = MutableStateFlow<List<CommentResponse>>(emptyList())
     val comments: StateFlow<List<CommentResponse>> = _comments.asStateFlow()
 
+    private val _shareNote = MutableStateFlow("")
+    val shareNote: StateFlow<String> = _shareNote.asStateFlow()
+
+    private val _uiEvent = Channel<AnswerUiEvent>()
+    val uiEvent = _uiEvent.receiveAsFlow()
+
     fun getComments(decisionId: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             when (val result = repository.getComments(decisionId)) {
@@ -40,11 +46,6 @@ class HistoryDetailViewModel @Inject constructor(
             }
         }
     }
-    private val _shareNote = MutableStateFlow("")
-    val shareNote: StateFlow<String> = _shareNote.asStateFlow()
-
-    private val _uiEvent = Channel<AnswerUiEvent>()
-    val uiEvent = _uiEvent.receiveAsFlow()
 
     fun onShareNoteChange(value: String) {
         _shareNote.value = value

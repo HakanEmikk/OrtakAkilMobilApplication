@@ -15,12 +15,15 @@
 
 ## 📸 Ekran Görüntüleri
 
-  https://github.com/user-attachments/assets/ca8b948a-a6d3-423a-8b2c-94b4d71840c2
-  https://github.com/user-attachments/assets/dec813f2-10af-405c-854c-3d8ff14d0dbd
-  https://github.com/user-attachments/assets/12086aa8-03f0-4aef-a229-7fcf16729cd7
-  https://github.com/user-attachments/assets/d99ffaaf-d2f5-4d08-b39b-e4255fd30441
-  https://github.com/user-attachments/assets/3273de8d-3457-4bef-8faa-a46db3204c63
+![image1](https://github.com/user-attachments/assets/75610ddb-876b-43e5-aa08-a83e6e23fd6e)
 
+![image2](https://github.com/user-attachments/assets/e5a81bf9-e39d-4f22-a1b0-11d11e4850bf)
+
+![image3](https://github.com/user-attachments/assets/882f960d-dab0-4e71-95a4-6b0a19c49525)
+
+![image4](https://github.com/user-attachments/assets/46fbd190-80de-4647-901b-936885d2c5de)
+
+![image5](https://github.com/user-attachments/assets/c18dd8f5-3400-4e78-940b-6a6080f4ec02)
 
 
 ## 🏗️ Mimari ve Tasarım Desenleri

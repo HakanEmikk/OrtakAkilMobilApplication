@@ -16,11 +16,16 @@
 ## 📸 Ekran Görüntüleri
 
 <p align="center">
-  <img src="screenshots/screenshot1.png" width="18%" />
-  <img src="screenshots/screenshot2.png" width="18%" />
-  <img src="screenshots/screenshot3.png" width="18%" />
-  <img src="screenshots/screenshot4.png" width="18%" />
-  <img src="screenshots/screenshot5.png" width="18%" />
+  <img src="![image1](https://github.com/user-attachments/assets/ca8b948a-a6d3-423a-8b2c-94b4d71840c2)
+" width="18%" />
+  <img src="![image2](https://github.com/user-attachments/assets/dec813f2-10af-405c-854c-3d8ff14d0dbd)
+" width="18%" />
+  <img src="![image3](https://github.com/user-attachments/assets/12086aa8-03f0-4aef-a229-7fcf16729cd7)
+" width="18%" />
+  <img src="![image4](https://github.com/user-attachments/assets/d99ffaaf-d2f5-4d08-b39b-e4255fd30441)
+" width="18%" />
+  <img src="![image5](https://github.com/user-attachments/assets/3273de8d-3457-4bef-8faa-a46db3204c63)
+" width="18%" />
 </p>
 
 

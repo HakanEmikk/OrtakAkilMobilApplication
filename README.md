@@ -16,8 +16,7 @@
 ## 📸 Ekran Görüntüleri
 
 <p align="center">
-  <img src="![image1](https://github.com/user-attachments/assets/ca8b948a-a6d3-423a-8b2c-94b4d71840c2)
-" width="18%" />
+  ![image1](https://github.com/user-attachments/assets/ca8b948a-a6d3-423a-8b2c-94b4d71840c2)
   <img src="![image2](https://github.com/user-attachments/assets/dec813f2-10af-405c-854c-3d8ff14d0dbd)
 " width="18%" />
   <img src="![image3](https://github.com/user-attachments/assets/12086aa8-03f0-4aef-a229-7fcf16729cd7)

@@ -15,16 +15,16 @@
 
 ## 📸 Ekran Görüntüleri
 
-![image1](https://github.com/user-attachments/assets/75610ddb-876b-43e5-aa08-a83e6e23fd6e)
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/75610ddb-876b-43e5-aa08-a83e6e23fd6e" width="45%" />
+  <img src="https://github.com/user-attachments/assets/e5a81bf9-e39d-4f22-a1b0-11d11e4850bf" width="45%" />
+</p>
 
-![image2](https://github.com/user-attachments/assets/e5a81bf9-e39d-4f22-a1b0-11d11e4850bf)
-
-![image3](https://github.com/user-attachments/assets/882f960d-dab0-4e71-95a4-6b0a19c49525)
-
-![image4](https://github.com/user-attachments/assets/46fbd190-80de-4647-901b-936885d2c5de)
-
-![image5](https://github.com/user-attachments/assets/c18dd8f5-3400-4e78-940b-6a6080f4ec02)
-
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/882f960d-dab0-4e71-95a4-6b0a19c49525" width="30%" />
+  <img src="https://github.com/user-attachments/assets/46fbd190-80de-4647-901b-936885d2c5de" width="30%" />
+  <img src="https://github.com/user-attachments/assets/c18dd8f5-3400-4e78-940b-6a6080f4ec02" width="30%" />
+</p>
 
 ## 🏗️ Mimari ve Tasarım Desenleri
 

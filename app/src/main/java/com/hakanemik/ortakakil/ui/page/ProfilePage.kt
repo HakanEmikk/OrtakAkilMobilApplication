@@ -1,5 +1,7 @@
 package com.hakanemik.ortakakil.ui.page
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -26,6 +28,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -43,6 +46,7 @@ import com.hakanemik.ortakakil.helper.currentDeviceSizeHelper
 import com.hakanemik.ortakakil.helper.responsive
 import com.hakanemik.ortakakil.helper.responsiveSp
 import com.hakanemik.ortakakil.viewmodel.ProfilePageViewModel
+import androidx.core.net.toUri
 
 @Composable
 fun ProfilePage(
@@ -56,6 +60,7 @@ fun ProfilePage(
     
     var showFirstDialog by remember { mutableStateOf(false) }
     var showSecondDialog by remember { mutableStateOf(false) }
+    val context = LocalContext.current
     
     // Handle delete account state
     LaunchedEffect(uiState.deleteAccountState) {
@@ -171,7 +176,16 @@ fun ProfilePage(
             SettingsCard("Hesap Bilgileri", R.drawable.person, { navController.navigate("account_info_page") }, deviceSize)
             SettingsCard("Bildirim Ayarları", R.drawable.notification, { navController.navigate("notification_settings_page") }, deviceSize)
             SettingsCard("Engellenen Kullanıcılar", R.drawable.block_person, { navController.navigate("blocked_users_page") }, deviceSize)
-            SettingsCard("Gizlilik ve Güvenlik", R.drawable.handshake, {}, deviceSize)
+            SettingsCard("Gizlilik Politikası", R.drawable.contract, {
+                val intent = Intent(Intent.ACTION_VIEW,
+                    "https://hakanemik.dev/privacy-policy".toUri())
+                context.startActivity(intent)
+                                                                      }, deviceSize)
+            SettingsCard("Hizmet Koşulları",R.drawable.handshake, {
+                val intent = Intent(Intent.ACTION_VIEW,
+                    "https://hakanemik.dev/terms".toUri())
+                context.startActivity(intent)
+            }, deviceSize)
             
             Spacer(modifier = Modifier.height(6.dp))
             

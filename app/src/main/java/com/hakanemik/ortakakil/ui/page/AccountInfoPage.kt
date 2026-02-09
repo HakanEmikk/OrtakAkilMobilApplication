@@ -182,7 +182,7 @@ fun AccountInfoPage(
                         value = uiState.email,
                         onValueChange = viewModel::updateEmail,
                         deviceSize = deviceSize,
-                        enabled = uiState.authProvider != "google",
+                        enabled = false,
                         error = uiState.emailError
                     )
                 }
